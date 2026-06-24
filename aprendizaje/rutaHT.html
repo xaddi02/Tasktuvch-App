@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruta de Aprendizaje HyR - TaskTUVCH</title>
+    <!-- Fuentes Arcade de Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Librería para el confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* --- VARIABLES DE TEMA HOTELES Y RESTAURANTES (HyR) --- */
+        :root {
+            --bg-center: #5a1010;
+            --bg-edge: #0f0202;
+            --accent: #ff4444;
+            --star-color: rgba(255,128,128,0.8);
+            --boss-color: #ffd700; /* Dorado brillante */
+            --success-color: #00e676; /* Verde Neón de Completado */
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; 
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-edge);
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- ELEMENTOS FLOTANTES UI --- */
+        #btn-volver {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 18px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+            text-shadow: 0 0 5px var(--accent);
+        }
+        #btn-volver:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 20px var(--accent);
+            transform: scale(1.05);
+        }
+
+        #img-ajohotel {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 50;
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+            transition: transform 0.3s ease;
+        }
+        #img-ajohotel:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* --- FONDOS Y EFECTOS (COCINA / HOTEL) --- */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, var(--bg-center) 0%, var(--bg-edge) 65%);
+            z-index: -4;
+        }
+
+        /* Patrón sutil de mantel de cocina o tapiz de hotel */
+        .stars {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(var(--star-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.15;
+            z-index: -3;
+        }
+
+        .escenario {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========================================= */
+        /* 1. ZONA SUPERIOR E INFERIOR (BARRAS)      */
+        /* ========================================= */
+        .barra-superior, .barra-inferior {
+            height: 25vh; 
+            background: rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .barra-superior {
+            border-bottom: 3px solid var(--accent);
+            border-bottom-left-radius: 50% 20px; 
+            border-bottom-right-radius: 50% 20px;
+        }
+
+        .barra-inferior {
+            border-top: 3px solid var(--accent);
+            border-top-left-radius: 50% 20px;
+            border-top-right-radius: 50% 20px;
+            height: 25vh;
+            margin-top: auto;
+        }
+
+        .titulo-ruta {
+            margin-top: 30px;
+            color: white; 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8vw;
+            text-shadow: 0 0 10px white, 0 0 20px var(--accent);
+            letter-spacing: 2px;
+            z-index: 10;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .decoracion {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.7;
+            filter: drop-shadow(0 0 10px var(--accent));
+            z-index: 10;
+        }
+
+        .ondas {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            z-index: 1;
+            opacity: 0.5;
+        }
+        .ondas-arriba { bottom: -2px; }
+        .ondas-abajo { top: -2px; }
+
+        /* ========================================= */
+        /* 2. ZONA CENTRAL (BANDA MECÁNICA)          */
+        /* ========================================= */
+        .zona-servicio {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-evenly; 
+            align-items: center;
+            padding: 0 5vw;
+        }
+
+        /* DISEÑO DE LA BANDA MECÁNICA DE COCINA */
+        .banda-mecanica {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 160px;
+            transform: translateY(-50%);
+            background-color: #222;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #111 0px,
+                #111 40px,
+                #0a0a0a 40px,
+                #0a0a0a 45px
+            );
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.8);
+            z-index: 1;
+            animation: mover-banda 1.2s linear infinite;
+        }
+
+        /* Rieles de la banda con neón */
+        .banda-mecanica::before, .banda-mecanica::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to bottom, #444, #222);
+            z-index: 2;
+        }
+        .banda-mecanica::before {
+            top: -10px;
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .banda-mecanica::after {
+            bottom: -10px;
+            border-top: 2px solid var(--accent);
+            box-shadow: 0 -5px 15px rgba(255, 68, 68, 0.4);
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        @keyframes mover-banda {
+            0% { background-position-x: 0; }
+            100% { background-position-x: -45px; } 
+        }
+
+        /* BASE PARA TODOS LOS UTENSILIOS */
+        .utensilio {
+            background: radial-gradient(circle, rgba(40,20,20,1) 40%, rgba(15,2,2,1) 100%);
+            border: 4px solid #441111;
+            cursor: pointer;
+            z-index: 2;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.8), inset 0 5px 10px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* ESTADOS DE COMPLETADO */
+        .utensilio.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.9), inset 0 0 15px rgba(0, 230, 118, 0.3) !important;
+        }
+        .utensilio.completado span::after {
+            content: ' ✔';
+            color: var(--success-color);
+            text-shadow: 0 0 5px var(--success-color);
+            font-weight: bold;
+        }
+        .utensilio.prueba-final.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 0 25px rgba(0, 230, 118, 0.5) !important;
+        }
+
+        /* 1. EL PLATO */
+        .item-plato { width: clamp(100px, 12vw, 140px); height: clamp(100px, 12vw, 140px); border-radius: 50%; }
+
+        /* 2. LA COPA DE VINO (Base plana, fondo redondo) */
+        .item-copa { width: clamp(90px, 10vw, 120px); height: clamp(110px, 14vw, 150px); border-radius: 5px 5px 60px 60px; }
+
+        /* 3. LA TABLA DE CORTAR (Rectangular suave) */
+        .item-tabla {
+            width: clamp(90px, 11vw, 130px); height: clamp(120px, 15vw, 160px);
+            border-radius: 15px; border-color: #5c3a21; 
+            background: linear-gradient(135deg, #3d2314 0%, #1a0f08 100%);
+        }
+
+        /* 4. LA OLLA / CAZUELA (Cuerpo ancho y profundo) */
+        .item-olla {
+            width: clamp(110px, 14vw, 150px); height: clamp(90px, 11vw, 120px);
+            border-radius: 10px 10px 50px 50px;
+            background: linear-gradient(to bottom, #2b2b2b 0%, #0a0a0a 100%);
+            border-color: #555;
+        }
+
+        /* 5. LA CAMPANA DE SERVICIO (Domo) */
+        .item-campana {
+            width: clamp(110px, 13vw, 150px); height: clamp(90px, 11vw, 120px);
+            border-radius: 70px 70px 10px 10px;
+            background: linear-gradient(135deg, #444 0%, #111 100%);
+            border-color: #666;
+        }
+
+        /* 6. EL PLATO ESTRELLA / PLATO BASE (Prueba final) */
+        .item-estrella {
+            width: clamp(110px, 13vw, 150px); height: clamp(110px, 13vw, 150px);
+            border-radius: 50%; border-style: double; border-width: 8px;
+            border-color: var(--boss-color);
+            background: radial-gradient(circle, #332200 40%, #0f0202 100%);
+        }
+
+        /* Iconos de los utensilios */
+        .utensilio::before {
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 8px var(--accent));
+            pointer-events: none;
+            transition: transform 0.3s ease;
+            margin-bottom: 8px;
+        }
+        .item-plato::before { content: '🍽️'; } 
+        .item-copa::before { content: '🍷'; } 
+        .item-tabla::before { content: '🔪'; } 
+        .item-olla::before { content: '🥘'; } 
+        .item-campana::before { content: '🛎️'; } 
+        .item-estrella::before { content: '⭐'; filter: drop-shadow(0 0 10px var(--boss-color)); }
+
+        /* HOVERS Y ESTILOS ACTIVOS */
+        .utensilio:hover {
+            border-color: var(--accent);
+            box-shadow: 0 25px 30px rgba(0,0,0,0.9), inset 0 0 15px rgba(255, 68, 68, 0.4);
+            transform: scale(1.15) translateY(-15px) !important;
+        }
+        .utensilio:hover::before { transform: scale(1.2) rotate(-10deg); }
+
+        .item-estrella:hover {
+            border-color: var(--boss-color);
+            box-shadow: 0 25px 30px rgba(0,0,0,0.9), inset 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        /* TEXTO DE LOS BOTONES */
+        .utensilio span {
+            color: #fff;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: clamp(0.6rem, 1vw, 0.85rem);
+            line-height: 1.2;
+            z-index: 3;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .utensilio:hover span {
+            text-shadow: 0 0 5px var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+        .item-estrella:hover span {
+            border-color: var(--boss-color);
+            text-shadow: 0 0 8px var(--boss-color);
+        }
+
+        /* ANIMACIÓN DE VIBRACIÓN (Para simular que van sobre la banda) */
+        @keyframes vibracion-mecanica {
+            0% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-1px) rotate(0.5deg); }
+            50% { transform: translateY(1px) rotate(0deg); }
+            75% { transform: translateY(-1px) rotate(-0.5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        .utensilio:nth-child(2) { animation: vibracion-mecanica 0.30s infinite linear; }
+        .utensilio:nth-child(3) { animation: vibracion-mecanica 0.35s infinite linear 0.1s; }
+        .utensilio:nth-child(4) { animation: vibracion-mecanica 0.28s infinite linear 0.2s; }
+        .utensilio:nth-child(5) { animation: vibracion-mecanica 0.40s infinite linear 0.15s; }
+        .utensilio:nth-child(6) { animation: vibracion-mecanica 0.32s infinite linear 0.05s; }
+        .utensilio:nth-child(7) { animation: vibracion-mecanica 0.38s infinite linear 0.25s; }
+
+        /* ========================================= */
+        /* 4. MODALES Y CONTENIDO                    */
+        /* ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(45, 8, 8, 0.95); border: 3px solid var(--accent); border-radius: 20px;
+            width: 80%; max-width: 800px; max-height: 80vh; padding: 30px;
+            color: white; overflow-y: auto;
+            position: relative; box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #0f0202; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; font-size: 25px;
+            color: var(--accent); cursor: pointer; font-family: 'Press Start 2P', cursive;
+            transition: transform 0.2s, text-shadow 0.2s;
+        }
+        .modal-close:hover { 
+            transform: scale(1.2); 
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .modal-title {
+            font-family: 'Press Start 2P', cursive; color: var(--accent); text-align: center;
+            font-size: 1.4rem; margin-top: 10px; margin-bottom: 25px; line-height: 1.5;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .code-block {
+            background: #0f0202; padding: 15px; border-radius: 10px;
+            border-left: 5px solid var(--accent); font-family: monospace;
+            overflow-x: auto; color: #ffb6c1; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            line-height: 1.5;
+        }
+
+        .btn-accion {
+            background: rgba(0,0,0,0.45); color: white; 
+            border: 2px solid var(--accent); padding: 15px 20px;
+            font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.1rem;
+            border-radius: 12px; cursor: pointer; 
+            margin-top: 15px; display: block; width: 100%;
+            transition: all 0.3s ease; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .btn-accion:hover { 
+            background: var(--accent); color: #fff; 
+            box-shadow: 0 0 15px var(--accent); transform: scale(1.02);
+        }
+
+        .btn-completar {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            margin-top: 25px;
+        }
+        .btn-completar:hover {
+            background: var(--success-color);
+            color: black;
+            box-shadow: 0 0 15px var(--success-color);
+        }
+
+        .quiz-question { margin-bottom: 20px; border-bottom: 1px dashed var(--accent); padding-bottom: 10px; }
+        .quiz-question p { font-weight: 600; font-size: 1.1rem; color: var(--accent); }
+        .quiz-question label { cursor: pointer; display: block; margin-bottom: 5px; }
+        
+        .match-grid { display: flex; justify-content: space-between; gap: 20px; margin-top: 20px; }
+        .match-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .match-item {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; text-align: center;
+            cursor: pointer; border: 2px solid #555; transition: 0.3s;
+            user-select: none; font-weight: 500;
+        }
+        .match-item:hover { border-color: var(--accent); }
+        .match-item.selected { border-color: var(--accent); background: rgba(255, 68, 68, 0.2); box-shadow: 0 0 10px var(--accent); }
+        .match-item.matched { background: #4caf50; border-color: #81c784; color: white; cursor: default; opacity: 0.8; }
+        .match-item.error { background: #d50000; border-color: #ff1744; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Botón Superior Izquierdo -->
+    <button id="btn-volver" onclick="window.location.href='vista2.html'">⬅ VOLVER</button>
+    
+    <!-- Imagen Inferior Izquierda -->
+    <img id="img-ajohotel" src="ajohotel.png" alt="Ajo Hotel">
+
+    <!-- Patrón de Fondo -->
+    <div class="stars"></div>
+
+    <div class="escenario">
+        <!-- Barra Superior -->
+        <div class="barra-superior">
+            <h1 class="titulo-ruta">APRENDIZAJE GUIADO<br>HOTELES Y RESTAURANTES</h1>
+            <div class="decoracion" style="bottom: 10px; left: 10%;">🍽️</div>
+            <div class="decoracion" style="bottom: 25px; left: 20%;">🍷</div>
+            <div class="decoracion" style="bottom: 5px; right: 15%;">🏨</div>
+            <div class="decoracion" style="bottom: 20px; right: 5%;">👨‍🍳</div>
+            <div class="ondas ondas-arriba"></div>
+        </div>
+
+        <!-- Zona de la Banda Mecánica -->
+        <div class="zona-servicio">
+            <!-- La Banda Mecánica Animada -->
+            <div class="banda-mecanica"></div>
+            
+            <button id="utensilio-lectura" class="utensilio item-plato" onclick="abrirModal('modal-lectura')">
+                <span>Fundamentos<br>Gastronómicos</span>
+            </button>
+            <button id="utensilio-ejemplos" class="utensilio item-copa" onclick="abrirModal('modal-ejemplos')">
+                <span>Protocolos<br>de Servicio</span>
+            </button>
+            <button id="utensilio-cuestionario" class="utensilio item-tabla" onclick="abrirModal('modal-cuestionario')">
+                <span>Evaluación<br>Teórica</span>
+            </button>
+            <button id="utensilio-conectar" class="utensilio item-olla" onclick="iniciarConectarConceptos()">
+                <span>Términos<br>Hoteleros</span>
+            </button>
+            <button id="utensilio-juego" class="utensilio item-campana" onclick="juegoRapido()">
+                <span>Simulador<br>de Cocina</span>
+            </button>
+            <button id="utensilio-prueba" class="utensilio item-estrella prueba-final" onclick="abrirModal('modal-prueba')">
+                <span style="color: #ffd700;">Prueba<br>Estrella</span>
+            </button>
+        </div>
+
+        <!-- Barra Inferior -->
+        <div class="barra-inferior">
+            <div class="ondas ondas-abajo"></div>
+            <div class="decoracion" style="top: 10px; left: 5%;">🛎️</div>
+            <div class="decoracion" style="top: 25px; left: 25%;">🛏️</div>
+            <div class="decoracion" style="top: 5px; right: 20%;">🥂</div>
+            <div class="decoracion" style="top: 20px; right: 8%;">🥗</div>
+        </div>
+    </div>
+
+    <!-- MODAL LECTURA (HyR) -->
+    <div id="modal-lectura" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-lectura')">X</span>
+            <h2 class="modal-title">Fundamentos de Hostelería</h2>
+            <p>La industria de <strong>Hoteles y Restaurantes</strong> se basa en la excelencia del servicio y la higiene rigurosa. Los pilares fundamentales son:</p>
+            <ul style="line-height: 1.6; margin-top: 15px;">
+                <li><strong style="color:var(--accent);">Mise en place:</strong> Término francés que significa "puesto en su lugar". Es la preparación previa de ingredientes y utensilios antes de empezar a cocinar o abrir el servicio.</li>
+                <li><strong style="color:var(--accent);">Contaminación Cruzada:</strong> Ocurre cuando bacterias de alimentos crudos (ej. pollo) se transfieren a alimentos listos para comer (ej. lechuga) a través de tablas de cortar o cuchillos mal lavados.</li>
+                <li><strong style="color:var(--accent);">Check-in / Check-out:</strong> Procesos clave en la recepción del hotel. El Check-in es el registro de llegada y entrega de llave; el Check-out es el cierre de cuenta y salida.</li>
+                <li><strong style="color:var(--accent);">Servicio al Cliente:</strong> Anticiparse a las necesidades del huésped o comensal con actitud proactiva, cortesía y resolución rápida de problemas.</li>
+            </ul>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('utensilio-lectura', 'modal-lectura')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <!-- MODAL EJEMPLOS (HyR) -->
+    <div id="modal-ejemplos" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-ejemplos')">X</span>
+            <h2 class="modal-title">Protocolo de Servicio de Mesa</h2>
+            <p>Ejemplo práctico: <strong>Cómo atender a un comensal desde que llega hasta que come</strong>.</p>
+            <div class="code-block">
+<pre><code>[PROTOCOLO DE SALA - TAREA TUVCH]
+1. Recepción: Saludar ("Buenas tardes"), confirmar reserva y guiar a la mesa.
+2. Toma de Comanda: 
+   - Entregar la carta (menú) por la derecha del comensal.
+   - Anotar bebidas y platillos repitiendo para confirmar.
+3. Marchar Platos: Avisar a cocina (cantar la comanda) para que empiecen a preparar los platos calientes.
+4. Servicio: 
+   - Servir los platos y bebidas por el lado DERECHO del cliente.
+   - Retirar los platos sucios por el lado IZQUIERDO.
+5. Seguimiento: Preguntar discretamente: "¿Todo está a su gusto?"</code></pre>
+            </div>
+            <p style="margin-top: 15px;">Nota: En tu aplicación <strong>TaskTUVCH</strong>, los meseros pueden usar la app para registrar la "Comanda" y enviarla digitalmente a la pantalla de la cocina al instante.</p>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('utensilio-ejemplos', 'modal-ejemplos')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <!-- MODAL CUESTIONARIO BÁSICO -->
+    <div id="modal-cuestionario" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-cuestionario')">X</span>
+            <h2 class="modal-title">Evaluación Teórica</h2>
+            <p style="margin-bottom: 20px;">Responde estas preguntas basándote en los Fundamentos.</p>
+            <form id="form-cuestionario">
+                <div class="quiz-question">
+                    <p>1. ¿Qué significa el término "Mise en place"?</p>
+                    <label><input type="radio" name="q1" value="a"> a) Preparación previa de ingredientes y herramientas antes del servicio.</label>
+                    <label><input type="radio" name="q1" value="b"> b) Un tipo de postre francés.</label>
+                    <label><input type="radio" name="q1" value="c"> c) El momento en que el cliente paga la cuenta.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>2. Cortar carne cruda y luego usar el mismo cuchillo sin lavar para cortar un tomate es un ejemplo de:</p>
+                    <label><input type="radio" name="q2" value="a"> a) Eficiencia en la cocina.</label>
+                    <label><input type="radio" name="q2" value="b"> b) Contaminación Cruzada.</label>
+                    <label><input type="radio" name="q2" value="c"> c) Mise en place.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>3. En el proceso de un hotel, el momento en que el huésped paga y entrega la habitación se llama:</p>
+                    <label><input type="radio" name="q3" value="a"> a) Check-in.</label>
+                    <label><input type="radio" name="q3" value="b"> b) Room Service.</label>
+                    <label><input type="radio" name="q3" value="c"> c) Check-out.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>4. Según el protocolo de mesa, ¿por qué lado se deben servir los platos al comensal?</p>
+                    <label><input type="radio" name="q4" value="a"> a) Por el lado derecho.</label>
+                    <label><input type="radio" name="q4" value="b"> b) Por el lado izquierdo.</label>
+                    <label><input type="radio" name="q4" value="c"> c) Por el frente, cruzando el brazo.</label>
+                </div>
+                <button type="button" class="btn-accion" onclick="evaluarCuestionario('form-cuestionario', 'q', ['a', 'b', 'c', 'a'], 'utensilio-cuestionario')">EVALUAR CONOCIMIENTO</button>
+            </form>
+            <p id="res-cuestionario" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <!-- MODAL CONECTAR CONCEPTOS -->
+    <div id="modal-conectar" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-conectar')">X</span>
+            <h2 class="modal-title">Términos Hoteleros</h2>
+            <p style="text-align:center;">Asocia el concepto gastronómico/hotelero con su definición.</p>
+            <div class="match-grid">
+                <div class="match-col" id="col-conceptos"></div>
+                <div class="match-col" id="col-definiciones"></div>
+            </div>
+            <p id="res-conectar" style="text-align:center; font-weight:bold; margin-top:20px; color:var(--accent); font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <!-- MODAL PRUEBA FINAL -->
+    <div id="modal-prueba" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--boss-color);">
+            <span class="modal-close" style="color: var(--boss-color);" onclick="cerrarModal('modal-prueba')">X</span>
+            <h2 class="modal-title" style="color: var(--boss-color);">Prueba Estrella</h2>
+            <p style="margin-bottom: 20px;">Demuestra tu dominio para obtener la excelencia en el servicio.</p>
+            <form id="form-prueba">
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">1. ¿Qué es una "Comanda"?</p>
+                    <label><input type="radio" name="p1" value="a"> a) El documento donde se anota el pedido del cliente para enviarlo a cocina.</label>
+                    <label><input type="radio" name="p1" value="b"> b) El uniforme del chef principal.</label>
+                    <label><input type="radio" name="p1" value="c"> c) La llave electrónica de una habitación.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">2. ¿Para qué sirve "Marchar los platos"?</p>
+                    <label><input type="radio" name="p2" value="a"> a) Para tirarlos a la basura.</label>
+                    <label><input type="radio" name="p2" value="b"> b) Para avisar a la cocina que el comensal ya terminó su entrada y pueden preparar el plato fuerte.</label>
+                    <label><input type="radio" name="p2" value="c"> c) Para limpiar la mesa.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">3. La principal regla para evitar la Contaminación Cruzada es:</p>
+                    <label><input type="radio" name="p3" value="a"> a) Usar diferentes tablas de picar para carnes crudas y vegetales.</label>
+                    <label><input type="radio" name="p3" value="b"> b) Cocinar todo a fuego bajo.</label>
+                    <label><input type="radio" name="p3" value="c"> c) Servir los platos rápidamente.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">4. Si usas la app TaskTUVCH en recepción, registrar el "Check-in" implica:</p>
+                    <label><input type="radio" name="p4" value="a"> a) Imprimir la factura de salida.</label>
+                    <label><input type="radio" name="p4" value="b"> b) Registrar la llegada del huésped, tomar sus datos y entregarle la habitación.</label>
+                    <label><input type="radio" name="p4" value="c"> c) Pedir comida a la habitación.</label>
+                </div>
+                <button type="button" class="btn-accion" style="border-color: var(--boss-color);" onmouseover="this.style.boxShadow='0 0 15px var(--boss-color)'; this.style.backgroundColor='var(--boss-color)'; this.style.color='#000';" onmouseout="this.style.boxShadow='0 0 10px rgba(0,0,0,0.5)'; this.style.backgroundColor='rgba(0,0,0,0.45)'; this.style.color='white';" onclick="evaluarCuestionario('form-prueba', 'p', ['a', 'b', 'a', 'b'], 'utensilio-prueba', true)">ENTREGAR SERVICIO</button>
+            </form>
+            <p id="res-prueba" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <!-- Modal de Celebración Final -->
+    <div id="modal-victoria" class="modal-overlay">
+        <div class="modal-content" style="text-align: center; border-color: var(--success-color);">
+            <span class="modal-close" style="color: var(--success-color);" onclick="cerrarModal('modal-victoria')">X</span>
+            <h2 class="modal-title" style="color: var(--success-color); font-size: 2rem;">¡SERVICIO 5 ESTRELLAS!</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; margin-top: 20px;">
+                Felicidades por completar este tema, ahora tiene una buena idea de lo que es HyR.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DE MODALES Y JUEGOS ---
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function marcarCompletado(utensilioId, modalId) {
+            document.getElementById(utensilioId).classList.add('completado');
+            if(modalId) cerrarModal(modalId);
+        }
+
+        function juegoRapido() {
+            marcarCompletado('utensilio-juego', null);
+            const juegos = ['juego1_HyR.html', 'juego2_HyR.html', 'juego3_HyR.html'];
+            const juegoAleatorio = juegos[Math.floor(Math.random() * juegos.length)];
+            alert("Iniciando Simulador: " + juegoAleatorio);
+            window.location.href = juegoAleatorio;
+        }
+
+        function evaluarCuestionario(formId, prefix, correctas, utensilioId, esPruebaFinal = false) {
+            const form = document.getElementById(formId);
+            let score = 0;
+            let respondidas = 0;
+
+            for (let i = 0; i < correctas.length; i++) {
+                const inputName = prefix + (i + 1);
+                const selected = form.querySelector(`input[name="${inputName}"]:checked`);
+
+                if (selected) {
+                    respondidas++;
+                    if (selected.value === correctas[i]) score++;
+                }
+            }
+
+            const resTexto = (formId === 'form-cuestionario') ? 'res-cuestionario' : 'res-prueba';
+            const contenedorRespuesta = document.getElementById(resTexto);
+
+            if (respondidas < correctas.length) {
+                contenedorRespuesta.style.color = '#ffcc00';
+                contenedorRespuesta.innerText = "Faltan respuestas. Completa la orden.";
+            } else {
+                if (score === correctas.length) {
+                    document.getElementById(utensilioId).classList.add('completado');
+
+                    if(esPruebaFinal) {
+                        cerrarModal('modal-prueba');
+                        abrirModal('modal-victoria');
+                        lanzarConfeti();
+                    } else {
+                        contenedorRespuesta.style.color = '#00e676';
+                        contenedorRespuesta.innerText = "¡Servicio impecable 5 estrellas! Módulo completado.";
+                    }
+                } else {
+                    contenedorRespuesta.style.color = '#ff1744';
+                    contenedorRespuesta.innerText = `Aciertos: ${score}/${correctas.length}. Hay que repasar el manual de cocina.`;
+                }
+            }
+        }
+
+        function lanzarConfeti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // --- 2. JUEGO CONECTAR TÉRMINOS (HyR) ---
+        const pares = [
+            { id: 1, c: "Mise en place", d: "Preparación previa de ingredientes y herramientas." },
+            { id: 2, c: "Comanda", d: "Anotación del pedido para enviarlo a cocina." },
+            { id: 3, c: "Check-in", d: "Registro de llegada y entrega de habitación." },
+            { id: 4, c: "Marchado", d: "Orden a cocina para empezar a emplatar o cocinar." }
+        ];
+
+        let seleccionIzquierda = null;
+        let aciertos = 0;
+
+        function iniciarConectarConceptos() {
+            abrirModal('modal-conectar');
+            aciertos = 0; seleccionIzquierda = null;
+            document.getElementById('res-conectar').innerText = "";
+            
+            const colConceptos = document.getElementById('col-conceptos');
+            const colDefiniciones = document.getElementById('col-definiciones');
+            colConceptos.innerHTML = ''; colDefiniciones.innerHTML = '';
+
+            const definicionesDesordenadas = [...pares].sort(() => Math.random() - 0.5);
+
+            pares.forEach(item => {
+                let divC = document.createElement('div');
+                divC.className = 'match-item concepto';
+                divC.innerText = item.c; divC.dataset.id = item.id;
+                divC.onclick = () => seleccionarConcepto(divC);
+                colConceptos.appendChild(divC);
+            });
+
+            definicionesDesordenadas.forEach(item => {
+                let divD = document.createElement('div');
+                divD.className = 'match-item definicion';
+                divD.innerText = item.d; divD.dataset.id = item.id;
+                divD.onclick = () => comprobarPareja(divD);
+                colDefiniciones.appendChild(divD);
+            });
+        }
+
+        function seleccionarConcepto(elemento) {
+            if (elemento.classList.contains('matched')) return;
+            document.querySelectorAll('.concepto').forEach(el => el.classList.remove('selected'));
+            elemento.classList.add('selected');
+            seleccionIzquierda = elemento;
+        }
+
+        function comprobarPareja(definicion) {
+            if (definicion.classList.contains('matched') || !seleccionIzquierda) return;
+
+            if (seleccionIzquierda.dataset.id === definicion.dataset.id) {
+                seleccionIzquierda.classList.remove('selected');
+                seleccionIzquierda.classList.add('matched');
+                definicion.classList.add('matched');
+                seleccionIzquierda = null; aciertos++;
+
+                if (aciertos === pares.length) {
+                    document.getElementById('res-conectar').innerText = "¡MESA SERVIDA! Todos los términos emparejados.";
+                    marcarCompletado('utensilio-conectar', null);
+                }
+            } else {
+                definicion.classList.add('error');
+                setTimeout(() => definicion.classList.remove('error'), 500);
+            }
+        }
+    </script>
+</body>
+</html>

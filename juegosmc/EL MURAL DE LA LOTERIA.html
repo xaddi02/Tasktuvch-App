@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - El Mural de la Lotería</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body{
+        background: #0f0c1b;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #1a153a 0%, #0a0813 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 105, 180, 0.4) 1px, transparent 1px),
+                          radial-gradient(rgba(0, 230, 118, 0.4) 1px, transparent 1px);
+        background-size: 50px 50px, 70px 70px;
+        background-position: 0 0, 25px 25px;
+        opacity: .2;
+        z-index: -2;
+    }
+
+    /* PANTALLA DE INICIO - ESTILO DOS PANTALLAS (SPLIT-SCREEN) */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #0a0813;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .split-container {
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        width: 100%;
+        max-width: 1100px;
+        align-items: stretch;
+    }
+
+    .screen-left {
+        flex: 1;
+        background: rgba(20, 15, 38, 0.6);
+        border: 3px solid #ff1493;
+        border-radius: 24px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(255, 20, 147, 0.2);
+    }
+
+    .carrera-label {
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px rgba(255, 214, 0, 0.5);
+    }
+
+    .menu-logo {
+        width: 220px;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 20px;
+        border: 3px solid #ff1493;
+        margin-bottom: 25px;
+        box-shadow: 0 0 15px rgba(255, 20, 147, 0.4);
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+        margin-bottom: 12px;
+        line-height: 2.2rem;
+    }
+
+    .menu-inicio .subtitle {
+        font-family: 'Press Start 2P', cursive;
+        color: #29b6f6;
+        font-size: 0.7rem;
+    }
+
+    .screen-right {
+        flex: 1.2;
+        background: rgba(20, 15, 38, 0.75);
+        border: 3px solid #00e676;
+        border-radius: 24px;
+        padding: 35px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
+    }
+
+    .instrucciones-title {
+        font-family: 'Press Start 2P', cursive;
+        color: #00e676;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .screen-right p {
+        font-size: 1.15rem;
+        line-height: 1.7rem;
+        margin-bottom: 20px;
+        color: #e0dff2;
+    }
+
+    .menu-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        margin-bottom: 25px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 15px;
+    }
+
+    .control-box {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-family: 'Press Start 2P', cursive;
+        color: #29b6f6;
+        font-size: 0.65rem;
+    }
+
+    .key{
+        padding: 8px 14px;
+        border: 2px solid #29b6f6;
+        border-radius: 8px;
+        background: rgba(0,0,0,.4);
+        font-weight: bold;
+        color: white;
+    }
+
+    /* HUD SUPERIOR */
+    .top-bar{
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+    }
+
+    .btn-volver{
+        background: rgba(0,0,0,.3);
+        border: 3px solid #00e676;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+    .btn-volver:hover{
+        transform: scale(1.05);
+        background: rgba(0, 230, 118, 0.15);
+    }
+
+    .center-title{
+        text-align: center;
+    }
+
+    .title-juego{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+    }
+
+    .subtitle-juego{
+        margin-top: 8px;
+        font-family: 'Press Start 2P', cursive;
+        color: #00e676;
+        font-size: 0.75rem;
+    }
+
+    .hud{
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box{
+        background: rgba(0,0,0,.4);
+        border: 3px solid #ffd600;
+        border-radius: 15px;
+        padding: 10px 20px;
+        min-width: 130px;
+        text-align: center;
+    }
+
+    .hud-box h3{
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        font-size: .65rem;
+        margin-bottom: 8px;
+    }
+
+    .hud-box p{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.4rem;
+    }
+
+    #timer { color: #ff5c8a; }
+    #score { color: #00e676; }
+
+    /* ÁREA PRINCIPAL JUEGO */
+    #main-game-container {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 10px 50px;
+    }
+
+    .question-container{
+        width: 100%;
+        max-width: 850px;
+        margin-bottom: 25px;
+        border: 3px solid #ff1493;
+        border-radius: 20px;
+        background: rgba(15, 10, 30, 0.75);
+        padding: 15px 25px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
+    }
+
+    .question-label{
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        margin-bottom: 8px;
+        font-size: 0.8rem;
+    }
+
+    #question{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.85rem;
+        line-height: 1.6rem;
+    }
+
+    /* REJILLA DEL MURAL DE LOTERÍA */
+    #loteria-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        width: 100%;
+        max-width: 850px;
+    }
+
+    /* CARTAS DE LOTERÍA ESTILIZADAS */
+    .loteria-card {
+        background: rgba(15, 10, 25, 0.85);
+        border: 4px solid;
+        border-radius: 16px;
+        height: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        padding: 15px;
+    }
+
+    .loteria-card:hover {
+        transform: scale(1.05);
+    }
+
+    /* Cintilla superior de la baraja */
+    .loteria-card::before {
+        content: "MÉXICO";
+        position: absolute;
+        top: -12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.55rem;
+        padding: 2px 10px;
+        border-radius: 6px;
+        color: #0a0813;
+        font-weight: bold;
+    }
+
+    .card-number {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+        font-weight: bold;
+    }
+
+    .card-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+        color: white;
+    }
+
+    /* FLASH SCREEN FEEDBACK */
+    #feedback-flash {
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        pointer-events: none;
+    }
+    @keyframes correct-anim {
+        0% { background-color: rgba(0, 230, 118, 0.25); }
+        100% { background-color: rgba(0,0,0,0); }
+    }
+    .flash-correct { animation: correct-anim 0.3s ease-out; }
+
+    @keyframes wrong-anim {
+        0% { background-color: rgba(255, 23, 68, 0.25); }
+        100% { background-color: rgba(0,0,0,0); }
+    }
+    .flash-wrong { animation: wrong-anim 0.3s ease-out; }
+
+    /* OVERLAY FIN */
+    .overlay{
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 8, 19, 0.95);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999;
+    }
+
+    .overlay h1{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.1rem;
+        text-align: center;
+        color: #ffffff;
+        text-shadow: 0 0 20px #ff1493;
+        margin-bottom: 25px;
+    }
+
+    .overlay p{
+        font-size: 1.8rem;
+        margin-bottom: 35px;
+    }
+
+    .play-btn{
+        border: none;
+        padding: 16px 35px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ff1493 0%, #ff9100 100%);
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.25rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 15px rgba(255, 20, 147, 0.4);
+    }
+    .play-btn:hover { transform: scale(1.05); }
+
+    .loteria-card::before {
+        background: currentColor !important;
+    }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div id="feedback-flash"></div>
+
+<div class="menu-inicio" id="menuInicio">
+    <div class="split-container">
+        <div class="screen-left">
+            <div class="carrera-label">MARAVILLAS HISTÓRICAS</div>
+            <img src="ajolote_mexicano.png" class="menu-logo" alt="Logo Lotería">
+            <h1>EL MURAL DE LA LOTERÍA</h1>
+            <div class="subtitle">TRIVIA DE REFLEJOS Y VELOCIDAD VISUAL</div>
+        </div>
+        
+        <div class="screen-right">
+            <div>
+                <div class="instrucciones-title">PANEL DE OPERACIONES</div>
+                <p>Lee el acertijo cultural de la parte superior. Escanea el mural de barajas de abajo a toda velocidad y dale un clic directo a la carta de lotería que resuelva la adivinanza antes de que se agote el tiempo.</p>
+            </div>
+            
+            <div class="menu-controls">
+                <div class="control-box">
+                    <span class="key">CLIC IZQUIERDO</span>
+                    <span>CANTAR LA CARTA</span>
+                </div>
+            </div>
+            
+            <button class="play-btn" onclick="comenzarJuego()">¡Correr y se Va!</button>
+        </div>
+    </div>
+</div>
+
+<div class="top-bar">
+    <button class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+    <div class="center-title">
+        <h1 class="title-juego">EL MURAL DE LA LOTERÍA</h1>
+        <div class="subtitle-juego">MARAVILLAS E ICONOGRAFÍA PATRIA</div>
+    </div>
+
+    <div class="hud">
+        <div class="hud-box">
+            <h3>TIEMPO</h3>
+            <p id="timer">45s</p>
+        </div>
+        <div class="hud-box">
+            <h3>ACIERTOS</h3>
+            <p id="score">0</p>
+        </div>
+    </div>
+</div>
+
+<div id="main-game-container">
+    <div class="question-container">
+        <div class="question-label">EL ACERTIJO DEL GRITÓN</div>
+        <div id="question">Cargando acertijo...</div>
+    </div>
+
+    <div id="loteria-grid"></div>
+</div>
+
+<div class="overlay" id="overlay">
+    <h1 id="finalTitle">¡FIN DE LA BARAJA!</h1>
+    <p>Cartas buenas completadas: <span id="finalScore" style="color:#ffd600">0</span></p>
+    <button class="play-btn" onclick="reiniciarJuego()">Iniciar Nueva Baraja</button>
+</div>
+
+<script>
+    // Colección expandida a 20 tarjetas únicas
+    const tarjetasLotería = [
+        { id: 1, name: "El Ajolote", q: "Tierno anfibio endémico de Xochimilco capaz de regenerar sus extremidades:", color: "#ff1493", glow: "rgba(255, 20, 147, 0.4)" },
+        { id: 2, name: "El Cempasúchil", q: "Flor ceremonial de color naranja brillante que guía el camino de las almas en noviembre:", color: "#ff9100", glow: "rgba(255, 145, 0, 0.4)" },
+        { id: 3, name: "El Nopal", q: "Planta desértica con espinas que forma parte esencial de nuestro Escudo Nacional:", color: "#00e676", glow: "rgba(0, 230, 118, 0.4)" },
+        { id: 4, name: "Chichén Itzá", q: "Majestuosa pirámide maya declarada una de las Nuevas Maravillas del Mundo Moderno:", color: "#ffd600", glow: "rgba(255, 214, 0, 0.4)" },
+        { id: 5, name: "El Mariachi", q: "Grupo musical tradicional de cuerdas y trompetas, ícono de nuestra música vernácula:", color: "#29b6f6", glow: "rgba(41, 182, 246, 0.4)" },
+        { id: 6, name: "El Chocolate", q: "Delicioso alimento de origen prehispánico elaborado a base del grano sagrado de cacao:", color: "#ba68c8", glow: "rgba(186, 104, 200, 0.4)" },
+        { id: 7, name: "La Catrina", q: "Elegante figura esquelética con sombrero, creada originalmente por José Guadalupe Posada:", color: "#e040fb", glow: "rgba(224, 64, 251, 0.4)" },
+        { id: 8, name: "El Trompo", q: "Juguete tradicional de madera que se hace girar enrollándole una cuerda:", color: "#ff5252", glow: "rgba(255, 82, 82, 0.4)" },
+        { id: 9, name: "La Piñata", q: "Estrella de colores con siete picos que se rompe en las posadas para obtener dulces:", color: "#18ffff", glow: "rgba(24, 255, 255, 0.4)" },
+        { id: 10, name: "El Alebrije", q: "Artesanía surrealista de colores vibrantes que combina partes de diferentes animales:", color: "#b2ff59", glow: "rgba(178, 255, 89, 0.4)" },
+        { id: 11, name: "El Cenote", q: "Pozo natural de agua cristalina sagrado para la cultura maya en la Península de Yucatán:", color: "#00b0ff", glow: "rgba(0, 176, 255, 0.4)" },
+        { id: 12, name: "El Sombrero", q: "Accesorio de ala ancha utilizado tradicionalmente por los charros mexicanos:", color: "#ffab40", glow: "rgba(255, 171, 64, 0.4)" },
+        { id: 13, name: "La Marimba", q: "Instrumento de percusión de madera muy popular en el sur de México, especialmente en Chiapas:", color: "#ff6e40", glow: "rgba(255, 110, 64, 0.4)" },
+        { id: 14, name: "La Trajinera", q: "Colorida embarcación adornada con flores que navega por los canales de Xochimilco:", color: "#f50057", glow: "rgba(245, 0, 87, 0.4)" },
+        { id: 15, name: "El Chile", q: "Fruto picante que es la base indiscutible de casi todas las salsas mexicanas:", color: "#d50000", glow: "rgba(213, 0, 0, 0.4)" },
+        { id: 16, name: "El Sarape", q: "Prenda textil tradicional tejida con múltiples líneas de colores brillantes, clásica de Saltillo:", color: "#7c4dff", glow: "rgba(124, 77, 255, 0.4)" },
+        { id: 17, name: "El Aguacate", q: "Conocido como el oro verde, es el ingrediente principal para preparar el guacamole:", color: "#64dd17", glow: "rgba(100, 221, 23, 0.4)" },
+        { id: 18, name: "La Campana", q: "Objeto de bronce que hizo sonar Miguel Hidalgo en Dolores para iniciar la Independencia:", color: "#ffd600", glow: "rgba(255, 214, 0, 0.4)" },
+        { id: 19, name: "El Taco", q: "Platillo insignia de México que consiste en una tortilla de maíz enrollada con un guiso:", color: "#ffc400", glow: "rgba(255, 196, 0, 0.4)" },
+        { id: 20, name: "El Volcán", q: "Montaña humeante conocida cariñosamente como Don Goyo (Popocatépetl):", color: "#607d8b", glow: "rgba(96, 125, 139, 0.4)" }
+    ];
+
+    let score = 0, timeLeft = 45, currentCardIndex = 0, gameRunning = false, timerInterval;
+    let poolCartas = [];
+
+    const grid = document.getElementById('loteria-grid');
+    const flash = document.getElementById('feedback-flash');
+
+    // Función para mezclar arreglos usando el algoritmo Fisher-Yates (verdadera aleatoriedad)
+    function barajarArreglo(arreglo) {
+        let copia = [...arreglo];
+        for (let i = copia.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copia[i], copia[j]] = [copia[j], copia[i]];
+        }
+        return copia;
+    }
+
+    function comenzarJuego() {
+        document.getElementById('menuInicio').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        gameRunning = true;
+        score = 0;
+        timeLeft = 45;
+        document.getElementById('score').innerText = score;
+        
+        // Barajamos las 20 cartas. El orden resultante será el orden de las preguntas de esta sesión.
+        poolCartas = barajarArreglo(tarjetasLotería);
+        currentCardIndex = 0;
+        
+        cargarAcertijo();
+
+        // Limpiar intervalo previo si existe
+        if(timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            if(timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft + "s";
+            } else {
+                finalizar("¡BUEN INTENTO, SE ACABÓ EL TIEMPO!");
+            }
+        }, 1000);
+    }
+
+    function regresarAlMenu() { window.location.href = 'vista.html'; }
+
+    function reiniciarJuego() {
+        comenzarJuego();
+    }
+
+    function cargarAcertijo() {
+        // Validar si ya contestó las 20 preguntas sin que se repitieran
+        if(currentCardIndex >= poolCartas.length) {
+            finalizar("¡MURAL COMPLETADO, ERES INCREÍBLE!");
+            return;
+        }
+
+        const cartaCorrecta = poolCartas[currentCardIndex];
+        document.getElementById('question').innerText = cartaCorrecta.q;
+
+        // Limpiar la cuadrícula
+        grid.innerHTML = "";
+
+        // Para mantener la UI limpia con 6 cartas, sacamos 5 distractores al azar del resto de la baraja
+        let distractores = tarjetasLotería.filter(c => c.id !== cartaCorrecta.id);
+        distractores = barajarArreglo(distractores).slice(0, 5);
+
+        // Juntamos la carta correcta con las 5 incorrectas y las revolvemos para armar el tablero
+        let cartasAMostrar = barajarArreglo([cartaCorrecta, ...distractores]);
+
+        cartasAMostrar.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'loteria-card';
+            div.style.borderColor = c.color;
+            div.style.color = c.color;
+            div.style.boxShadow = `0 0 15px ${c.glow}`;
+            
+            div.style.setProperty('--bg-cintilla', c.color);
+            
+            div.innerHTML = `
+                <div class="card-number">${c.id}</div>
+                <div class="card-name">${c.name}</div>
+            `;
+
+            div.setAttribute('style', div.getAttribute('style') + `)`);
+            
+            div.onclick = () => validarRespuestaUsuario(c.id, cartaCorrecta.id);
+            grid.appendChild(div);
+        });
+    }
+
+    function validarRespuestaUsuario(idSeleccionado, idCorrecto) {
+        if(!gameRunning) return;
+
+        if(idSeleccionado === idCorrecto) {
+            score += 1;
+            document.getElementById('score').innerText = score;
+            timeLeft += 3; // Otorga 3 segundos extra
+            if(timeLeft > 45) timeLeft = 45; // Tope máximo de tiempo
+            
+            flash.className = "flash-correct";
+            currentCardIndex++;
+            
+            setTimeout(() => {
+                flash.className = "";
+                cargarAcertijo();
+            }, 250);
+        } else {
+            timeLeft -= 4; // Resta 4 segundos por equivocarse
+            if(timeLeft < 0) timeLeft = 0;
+            document.getElementById('timer').innerText = timeLeft + "s";
+            
+            flash.className = "flash-wrong";
+            setTimeout(() => flash.className = "", 250);
+        }
+    }
+
+    function finalizar(msg) {
+        gameRunning = false;
+        clearInterval(timerInterval);
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('finalTitle').innerText = msg;
+        document.getElementById('finalScore').innerText = score;
+    }
+</script>
+
+</body>
+</html>

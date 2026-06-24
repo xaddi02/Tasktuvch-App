@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - Atrapa la Respuesta</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #03131f;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    /* FONDO INTERGALÁCTICO */
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #0d3347 0%, #020b14 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px);
+        background-size: 45px 45px;
+        opacity: .12;
+        z-index: -2;
+    }
+
+    /* PANTALLA DE INICIO / MENÚ */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #03131f;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 3rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #00e5ff, 0 0 40px #00e5ff;
+        margin-bottom: 15px;
+        letter-spacing: 2px;
+    }
+
+    .menu-inicio .subtitle {
+        font-family: 'Press Start 2P', cursive;
+        color: #00e5ff;
+        font-size: 0.9rem;
+        margin-bottom: 40px;
+    }
+
+    .instrucciones-box {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #00e5ff;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 650px;
+        margin-bottom: 40px;
+        box-shadow: 0 0 15px rgba(0,229,255,.3);
+    }
+
+    .instrucciones-box p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        line-height: 1.6rem;
+    }
+
+    .control-box-menu {
+        font-family: 'Press Start 2P', cursive;
+        color: #00e5ff;
+        font-size: .8rem;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .key-mouse {
+        display: inline-block;
+        padding: 10px 15px;
+        border: 3px solid #00e5ff;
+        border-radius: 12px;
+        background: rgba(0,0,0,.45);
+        box-shadow: 0 0 12px rgba(0,229,255,.5);
+        margin-right: 10px;
+    }
+
+    /* HUD SUPERIOR */
+    .top-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+    }
+
+    .btn-volver {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #00e5ff;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 12px #00e5ff;
+    }
+
+    .btn-volver:hover {
+        transform: scale(1.05);
+        background: rgba(0,229,255,.15);
+    }
+
+    .center-title {
+        text-align: center;
+    }
+
+    .title-juego {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.2rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #00e5ff;
+    }
+
+    .subtitle-juego {
+        margin-top: 8px;
+        font-family: 'Press Start 2P', cursive;
+        color: #00e5ff;
+        font-size: 0.75rem;
+    }
+
+    .hud {
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #00e5ff;
+        border-radius: 15px;
+        padding: 10px 20px;
+        min-width: 140px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(0,229,255,.5);
+    }
+
+    .hud-box h3 {
+        font-family: 'Press Start 2P', cursive;
+        color: #00e5ff;
+        font-size: .65rem;
+        margin-bottom: 8px;
+    }
+
+    .hud-box p {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.4rem;
+    }
+
+    #time { color: #ff5c8a; }
+    #score { color: #ffd600; }
+
+    /* CANVAS ESTILO CRISTAL NEÓN */
+    canvas {
+        background-color: rgba(0, 0, 0, 0.45);
+        border: 3px solid #00e5ff;
+        border-radius: 25px;
+        box-shadow: 0 0 25px rgba(0,229,255,.4);
+        margin: 15px auto;
+        max-height: 62vh;
+        display: block;
+        z-index: 2;
+    }
+
+    /* BOTÓN GENERAL */
+    .play-btn {
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        background: #00cfff;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .play-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #00cfff;
+    }
+
+    /* SCREEN OVERLAY (FIN) */
+    .overlayScreen {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.92);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+    }
+
+    .overlayScreen h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.8rem;
+        color: #d9e3ea;
+        text-shadow: 0 0 20px rgba(255,255,255,.5);
+        margin-bottom: 25px;
+    }
+
+    .overlayScreen p {
+        font-size: 1.8rem;
+        margin-bottom: 35px;
+    }
+
+    .overlayScreen span {
+        color: #ff6ea8;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+    <div class="stars"></div>
+
+    <div class="menu-inicio" id="menuInicio">
+        <h1>¡ATRAPA LA RESPUESTA!</h1>
+        <div class="subtitle">LAGUNA DE APRENDIZAJE POO</div>
+        
+        <div class="instrucciones-box">
+            <p>Lee la pregunta superior dentro del contenedor de cristal. Las burbujas flotantes contienen opciones, ¡da clic sobre la correcta antes de que acabe el tiempo!</p>
+            
+            <div class="control-box-menu">
+                <span class="key-mouse">CLIC IZQUIERDO</span>
+                <span>SELECCIONAR BURBUJA</span>
+            </div>
+        </div>
+
+        <button class="play-btn" onclick="comenzarJuego()">Comenzar Juego</button>
+    </div>
+
+    <div class="top-bar">
+        <button id="btn-volver" class="btn-volver" onclick="regresarAlMenu()">⬅ VOLVER</button>
+
+        <div class="center-title">
+            <h1 class="title-juego" style="font-size: 1.8rem;">¡ATRAPA LA RESPUESTA!</h1>
+            <div class="subtitle-juego">PROGRAMACIÓN ORIENTADA A OBJETOS</div>
+        </div>
+        
+        <div class="hud">
+            <div class="hud-box">
+                <h3>TIEMPO</h3>
+                <p id="time">60s</p>
+            </div>
+            <div class="hud-box">
+                <h3>PUNTOS</h3>
+                <p id="score">0</p>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="720" height="480"></canvas>
+
+    <div id="endScreen" class="overlayScreen" style="display: none;">
+        <h1 id="finalTitle">¡TIEMPO AGOTADO!</h1>
+        <p>Puntuación Final: <span id="finalScore">0</span></p>
+        <button class="play-btn" onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let score = 0;
+        let timeLeft = 60;
+        let timer;
+        let gameRunning = false; 
+        let respuestasCorrectasTotal = 0; 
+        
+        let question = "";
+        let answers = []; 
+        
+        const quiz = [
+            {
+                q: "¿Molde para crear objetos?",
+                correct: "Clase",
+                wrongs: ["Método", "Atributo", "Instancia", "Variable", "Puntero", "Array", "Bucle", "Interfaz", "Paquete"]
+            },
+            {
+                q: "¡Oculta detalles internos del objeto!",
+                correct: "Encapsulamiento",
+                wrongs: ["Herencia", "Polimorfismo", "Abstracción", "Instanciar", "Compilar", "Recursión", "Iterar", "Tipado", "Mutabilidad"]
+            },
+            {
+                q: "¿Derivar una clase nueva de otra?",
+                correct: "Herencia",
+                wrongs: ["Polimorfismo", "Encapsular", "Sobrecarga", "Sobrescribir", "Instanciar", "Destruir", "Inyección", "Mutabilidad", "Cast"]
+            },
+            {
+                q: "¿Múltiples formas de comportamiento?",
+                correct: "Polimorfismo",
+                wrongs: ["Herencia", "Encapsular", "Abstracción", "Acoplamiento", "Cohesión", "Singleton", "Constructor", "Recursión", "Binario"]
+            },
+            {
+                q: "En POO, ¿Qué es un objeto?",
+                correct: "Instancia",
+                wrongs: ["Clase", "Función", "Librería", "Variable", "Constante", "Puntero", "Macro", "Script", "Algoritmo"]
+            },
+            {
+                q: "¿Método que inicializa un objeto?",
+                correct: "Constructor",
+                wrongs: ["Destructor", "Setter", "Getter", "Main", "Super", "This", "Static", "Void", "Print"]
+            },
+            {
+                q: "¿Define la acción de un objeto?",
+                correct: "Método",
+                wrongs: ["Atributo", "Propiedad", "Variable", "Paquete", "Import", "Extends", "Objeto", "Clase", "Instancia"]
+            },
+            {
+                q: "¿Referencia al objeto actual?",
+                correct: "This",
+                wrongs: ["Super", "Base", "Parent", "Class", "New", "Return", "Break", "Void", "Static"]
+            }
+        ];
+
+        function comenzarJuego() {
+            document.getElementById('menuInicio').style.display = 'none';
+            gameRunning = true;
+            newQuestion();
+            startTimer();
+            gameLoop();
+        }
+
+        function regresarAlMenu() {
+            window.location.href = 'vista.html';
+        }
+
+        function newQuestion() {
+            const qData = quiz[Math.floor(Math.random() * quiz.length)];
+            question = qData.q;
+            
+            let all = [qData.correct, ...qData.wrongs];
+            all.sort(() => Math.random() - 0.5);
+            
+            answers = [];
+            
+            for (let i = 0; i < 10; i++) {
+                let text = all[i];
+                let x = 80 + Math.random() * 560;
+                let y = 140 + Math.random() * 260;
+                let vx = (Math.random() * 2.6 - 1.3); 
+                let vy = (Math.random() * 2.6 - 1.3);
+                
+                answers.push({
+                    text: text,
+                    x: x,
+                    y: y,
+                    vx: vx,
+                    vy: vy,
+                    correct: (text === qData.correct)
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Contenedor de la Pregunta
+            ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+            ctx.beginPath();
+            ctx.roundRect(30, 20, 660, 75, 18);
+            ctx.fill();
+            ctx.strokeStyle = "#00e5ff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Texto de la pregunta
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 15px 'Press Start 2P', cursive";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(question, 360, 58);
+
+            // Dibujar burbujas
+            for (let a of answers) {
+                ctx.beginPath();
+                ctx.arc(a.x, a.y, 55, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
+                ctx.fill();
+
+                ctx.strokeStyle = "#00e5ff";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(a.x - 18, a.y - 18, 8, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+                ctx.fill();
+
+                ctx.fillStyle = "#e0f2f1";
+                ctx.font = "bold 11px 'Press Start 2P', cursive";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                
+                ctx.shadowColor = "#000";
+                ctx.shadowBlur = 4;
+                ctx.fillText(a.text, a.x, a.y);
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        function update() {
+            for (let a of answers) {
+                a.x += a.vx;
+                a.y += a.vy;
+
+                if (a.x < 65 || a.x > canvas.width - 65) a.vx *= -1;
+                if (a.y < 155 || a.y > canvas.height - 65) a.vy *= -1;
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('click', function(e) {
+            if (!gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            for (let a of answers) {
+                const dx = mx - a.x;
+                const dy = my - a.y;
+                const distancia = Math.sqrt(dx*dx + dy*dy);
+
+                if (distancia < 55) { 
+                    if (a.correct) {
+                        score += 20;
+                        respuestasCorrectasTotal++;
+                        document.getElementById('score').textContent = score;
+                        timeLeft += 5; 
+                        if (timeLeft > 90) timeLeft = 90;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(0, 229, 255, 0.35)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                        
+                        setTimeout(() => {
+                            newQuestion();
+                        }, 120);
+                    } else {
+                        timeLeft -= 4;
+                        if(timeLeft < 0) timeLeft = 0;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(255, 92, 138, 0.4)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                    }
+                    return;
+                }
+            }
+        });
+
+        function startTimer() {
+            timer = setInterval(() => {
+                if (!gameRunning) return;
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft + "s";
+                
+                if (timeLeft <= 0) {
+                    evaluarFinJuego("¡SE TE TERMINÓ EL TIEMPO!");
+                }
+            }, 1000);
+        }
+
+        function evaluarFinJuego(motivoBase) {
+            gameRunning = false;
+            clearInterval(timer);
+            
+            let mensajeFinal = motivoBase;
+            
+            if (motivoBase !== "¡SE TE TERMINÓ EL TIEMPO!") {
+                if (respuestasCorrectasTotal >= 6) {
+                    mensajeFinal = "¡GANASTE!";
+                } else if (respuestasCorrectasTotal >= 3) {
+                    mensajeFinal = "¡CASI LO LOGRAS!";
+                } else {
+                    mensajeFinal = "¡PERDISTE AJOLOTITO!";
+                }
+            } else {
+                if (score <= 0) {
+                    mensajeFinal = "¡PERDISTE AJOLOTITO!";
+                }
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTitle').innerText = mensajeFinal;
+            document.getElementById('endScreen').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

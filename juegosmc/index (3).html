@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TASKTUVCH - GOLDEN ARCADE EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-black: #080802;
+            --card-black: #0f0f02;
+            --neon-yellow: #ecab0f; 
+            --neon-yellow-dim: #a4760a;
+            --neon-yellow-glow: 0 0 8px #ecab0f, 0 0 15px rgba(236, 171, 15, 0.5);
+            --text-white: #ffffff;
+            --text-gray: #aaaa77;
+            --border-arcade: 2px solid #ecab0f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Fredoka', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1c1403 0%, #050501 100%),
+                linear-gradient(rgba(236, 171, 15, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(236, 171, 15, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 25px 25px, 25px 25px;
+            color: var(--text-white);
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        .view {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes slightGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(236, 171, 15, 0.4); border-color: rgba(236, 171, 15, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(236, 171, 15, 0.8); border-color: rgba(236, 171, 15, 1); }
+        }
+
+        .image-placeholder-container {
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, rgba(236, 171, 15, 0.15) 0%, rgba(236, 171, 15, 0.03) 50%, transparent 70%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+            animation: floatAnimation 4s ease-in-out infinite;
+        }
+
+        .image-placeholder-container img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(236, 171, 15, 0.4));
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .auth-left-panel {
+            flex: 1;
+            background: linear-gradient(180deg, #120e03 0%, #1a1405 100%);
+            border-right: 3px double var(--neon-yellow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .auth-left-panel h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2.5rem;
+            color: var(--neon-yellow);
+            text-shadow: var(--neon-yellow-glow);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .auth-left-panel p {
+            font-size: 1.15rem;
+            color: var(--text-white);
+            max-width: 450px;
+            line-height: 1.6rem;
+            border: 1px dashed rgba(236, 171, 15, 0.3);
+            padding: 15px;
+            background-color: rgba(18, 14, 3, 0.8);
+            border-radius: 12px;
+        }
+
+        .auth-right-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .arcade-card {
+            background-color: var(--card-black);
+            border: var(--border-arcade);
+            box-shadow: var(--neon-yellow-glow);
+            padding: 40px;
+            width: 100%;
+            max-width: 460px;
+            border-radius: 16px;
+        }
+
+        .arcade-card h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            text-align: center;
+            font-size: 1.4rem;
+            text-shadow: var(--neon-yellow-glow);
+            margin-bottom: 25px;
+        }
+
+        .arcade-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--neon-yellow-dim);
+            margin-bottom: 25px;
+        }
+
+        .arcade-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            transition: all 0.2s;
+        }
+
+        .arcade-tab.active {
+            color: var(--neon-yellow);
+            border: var(--border-arcade);
+            border-bottom: 2px solid var(--card-black);
+            background-color: var(--card-black);
+            margin-bottom: -2px;
+            text-shadow: var(--neon-yellow-glow);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            margin-bottom: 8px;
+        }
+
+        .arcade-input {
+            width: 100%;
+            background-color: #000000;
+            border: 1px solid var(--neon-yellow-dim);
+            padding: 12px;
+            color: var(--text-white);
+            font-size: 1.1rem;
+            outline: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color-scheme: dark;
+        }
+
+        .arcade-input:focus {
+            border-color: var(--neon-yellow);
+            box-shadow: var(--neon-yellow-glow);
+        }
+
+        .arcade-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            color: var(--text-white);
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .arcade-checkbox input {
+            accent-color: var(--neon-yellow);
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-arcade {
+            width: 100%;
+            background-color: var(--neon-yellow);
+            color: var(--bg-black);
+            border: none;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--neon-yellow-glow);
+            border-radius: 8px;
+        }
+
+        /* --- DASHBOARD --- */
+        #dashboard-view {
+            flex-direction: column;
+            padding: 25px;
+            gap: 20px;
+            position: relative;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 2px dashed var(--neon-yellow-dim);
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        .dash-logo h1 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            font-size: 1.8rem;
+            text-shadow: var(--neon-yellow-glow);
+            letter-spacing: 1px;
+        }
+
+        .dash-logo p {
+            color: var(--text-white);
+            font-size: 1rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .btn-header-arcade {
+            background-color: var(--bg-black);
+            color: var(--neon-yellow);
+            border: 2px solid var(--neon-yellow);
+            padding: 10px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            animation: slightGlow 3s infinite;
+        }
+
+        .btn-header-arcade:hover {
+            background-color: var(--neon-yellow);
+            color: var(--bg-black);
+            animation: none;
+            box-shadow: var(--neon-yellow-glow);
+        }
+
+        .dash-main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            margin-top: 20px;
+        }
+
+        .grid-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .arcade-panel {
+            background-color: var(--card-black);
+            border: var(--border-arcade);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            box-shadow: 0 0 5px rgba(236,171,15,0.1);
+        }
+
+        .panel-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--neon-yellow-dim);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .panel-title-bar h3 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            font-size: 0.75rem;
+            text-shadow: 0 0 5px rgba(236,171,15,0.5);
+        }
+
+        .action-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-btn {
+            background-color: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .interactive-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .interactive-item {
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px dashed var(--neon-yellow-dim);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .interactive-item:hover, .interactive-item.active-item {
+            border-style: solid;
+            border-color: var(--neon-yellow);
+            background-color: rgba(236, 171, 15, 0.08);
+            box-shadow: inset 0 0 8px rgba(236,171,15,0.2);
+        }
+
+        /* --- SECCIÓN APRENDIZAJE GUIADO --- */
+        #learn-view {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .learn-title {
+            font-family: 'Press Start 2P', cursive;
+            color: #ff1493; 
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 12px;
+            line-height: 2.8rem;
+            text-shadow: 0 0 10px rgba(255, 20, 147, 0.3);
+        }
+
+        .learn-banner {
+            background-color: #0d3254; 
+            border-radius: 18px;
+            padding: 25px 30px;
+            max-width: 780px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .learn-banner p {
+            font-size: 1.15rem;
+            line-height: 1.7rem;
+            color: #d9e3ea;
+        }
+
+        .select-prompt {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .career-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 540px;
+        }
+
+        .btn-career {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s;
+        }
+
+        .btn-mexico { background-color: #4a0d2e; border-color: #ff1493; } 
+        .btn-sistemas { background-color: #0b3d22; border-color: #00e676; } 
+        .btn-cuidados { background-color: #2b1736; border-color: #ba68c8; } 
+        .btn-hoteles { background-color: #5a1010; border-color: #ff4444; } 
+        .btn-mecatronica { background-color: #162a36; border-color: #243f4f; opacity: 0.8; } 
+
+        .btn-career:hover { transform: scale(1.02); }
+
+        .games-submenu {
+            display: none;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--neon-yellow);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 10px;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: var(--neon-yellow-glow);
+        }
+
+        .btn-game-launcher {
+            background: #111;
+            border: 1px solid var(--neon-yellow-dim);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1.05rem;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .btn-game-launcher:hover {
+            background: var(--neon-yellow);
+            color: black;
+            font-weight: bold;
+        }
+
+        /* --- PANTALLA IFRAME (JUEGO INTEGRADO) --- */
+        #game-screen-view {
+            flex-direction: column;
+            padding: 20px;
+            height: 100vh;
+            width: 100vw;
+            background-color: #050508;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--neon-yellow);
+            padding-bottom: 10px;
+        }
+
+        #game-frame-title {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            font-size: 1.1rem;
+            text-shadow: var(--neon-yellow-glow);
+        }
+
+        .arcade-iframe-container {
+            flex: 1;
+            width: 100%;
+            border: 3px solid var(--neon-yellow);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--neon-yellow-glow);
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .calendar-nav span { cursor: pointer; color: var(--neon-yellow); }
+        .calendar-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .calendar-day-cell { padding: 5px; min-height: 25px; cursor: pointer; }
+        .detail-textarea { width: 100%; background-color: #000000; border: 1px solid var(--neon-yellow-dim); padding: 15px; color: var(--text-white); resize: none; flex: 1; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: none; }
+        .modal-overlay.active { display: flex; }
+    </style>
+</head>
+<body>
+
+    <!-- VISTA 1: LOGIN -->
+    <section id="login-view" class="view active">
+        <div class="auth-wrapper">
+            <div class="auth-left-panel">
+                <div class="image-placeholder-container">
+                    <img src="IMAGENES_TASKTUVCH/image_91b007.png" alt="Axolote Mariachi">
+                </div>
+                <h1>TASKTUVCH</h1>
+                <p>Aprende, organiza y juega en la laguna de Xochimilco. Tu axolote te acompaña en cada tarea.</p>
+            </div>
+            <div class="auth-right-panel">
+                <div class="arcade-card">
+                    <h2>TASKTUVCH</h2>
+                    <div class="arcade-tabs">
+                        <div class="arcade-tab active" onclick="switchTab('login')">Iniciar sesión</div>
+                        <div class="arcade-tab" onclick="switchTab('register')">Registrarse</div>
+                    </div>
+                    <form id="login-form" onsubmit="executeLogin(event)">
+                        <div class="form-group">
+                            <label>Correo institucional</label>
+                            <input type="text" class="arcade-input" placeholder="alumno@tuvch.edu.mx" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" class="arcade-input" placeholder="........" required>
+                        </div>
+                        <label class="arcade-checkbox">
+                            <input type="checkbox" required>
+                            Acepto las normas de la comunidad TUVCH 🐾
+                        </label>
+                        <button type="submit" class="btn-arcade">Iniciar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISTA 2: REGISTER -->
+    <section id="register-view" class="view">
+        <div class="auth-wrapper">
+            <div class="auth-left-panel">
+                <div class="image-placeholder-container">
+                    <img src="IMAGENES_TASKTUVCH/image_91b007.png" alt="Axolote Mariachi">
+                </div>
+                <h1>TASKTUVCH</h1>
+                <p>Aprende, organiza y juega en la laguna de Xochimilco. Tu axolote te acompaña en cada tarea.</p>
+            </div>
+            <div class="auth-right-panel">
+                <div class="arcade-card">
+                    <h2>TASKTUVCH</h2>
+                    <div class="arcade-tabs">
+                        <div class="arcade-tab" onclick="switchTab('login')">Iniciar sesión</div>
+                        <div class="arcade-tab active" onclick="switchTab('register')">Registrarse</div>
+                    </div>
+                    <form id="register-form" onsubmit="executeRegister(event)">
+                        <div class="form-group">
+                            <label>Nombre completo</label>
+                            <input type="text" class="arcade-input" placeholder="Michelle Jimenez" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Correo institucional</label>
+                            <input type="email" class="arcade-input" placeholder="alumno@tuvch.edu.mx" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" class="arcade-input" placeholder="........" required>
+                        </div>
+                        <label class="arcade-checkbox">
+                            <input type="checkbox" required>
+                            Acepto las normas de la comunidad TUVCH 🐾
+                        </label>
+                        <button type="submit" class="btn-arcade">Registrar Usuario</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISTA 3: DASHBOARD PRINCIPAL -->
+    <section id="dashboard-view" class="view">
+        <header class="dash-header">
+            <div class="dash-logo">
+                <h1>TASKTUVCH</h1>
+                <p>Hola, Michelle 🌸</p>
+            </div>
+            <div class="header-buttons">
+                <button class="btn-header-arcade" onclick="logout()">Regresar</button>
+                <button class="btn-header-arcade" onclick="triggerZeus()">Zeus AI</button>
+                <button class="btn-header-arcade" onclick="changeView('learn-view')">✨ Aprender</button>
+            </div>
+        </header>
+
+        <div class="dash-main-grid">
+            <div class="grid-column">
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>MIS CLASES</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="addClass()">+ Añadir</button>
+                            <button class="panel-btn" onclick="deleteClass()">Borrar</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="classes-list"></div>
+                </div>
+
+                <div class="arcade-panel mini-calendar">
+                    <div class="panel-title-bar">
+                        <h3>CALENDARIO</h3>
+                    </div>
+                    <div class="calendar-nav">
+                        <span onclick="changeMonth(-1)">&#9664;</span>
+                        <span id="calendar-month-year">Mayo 2026</span>
+                        <span onclick="changeMonth(1)">&#9654;</span>
+                    </div>
+                    <div class="calendar-days-grid" id="calendar-grid"></div>
+                </div>
+            </div>
+
+            <div class="grid-column">
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>TAREAS PRINCIPALES</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="openTaskModal('principal')">+ Añadir</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="principal-list"></div>
+                </div>
+
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>TAREAS SECUNDARIAS</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="openTaskModal('secundaria')">+ Añadir</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="secundaria-list"></div>
+                </div>
+            </div>
+
+            <div class="grid-column">
+                <div class="arcade-panel detail-display">
+                    <div class="panel-title-bar">
+                        <h3>DETALLES</h3>
+                    </div>
+                    <div class="detail-meta-label">ID TAREA</div>
+                    <div class="detail-main-title" id="detail-title">Ninguna tarea seleccionada</div>
+                    <div class="detail-meta-info" id="detail-meta">Materia: --- | Fecha: --- | Hora: ---</div>
+                    <textarea class="detail-textarea" id="detail-desc" placeholder="Descripción de la actividad..."></textarea>
+                    <div class="detail-footer-buttons">
+                        <button class="btn-detail-action" onclick="openTaskModal('principal')">+ Agregar</button>
+                        <button class="btn-detail-action" onclick="saveDetails()">📝 Guardar</button>
+                        <button class="btn-detail-action primary-action" onclick="completeCurrentDetail()">✓ Completar</button>
+                        <button class="btn-detail-action" style="background: rgba(255,0,0,0.1); border-color: #ff5555; color: #ff5555;" onclick="deleteCurrentDetail()">🗑️ Borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISTA 4: APRENDIZAJE GUIADO (CONEXIÓN EXACTA DE TUS ARCHIVOS LOCALES) -->
+    <section id="learn-view" class="view">
+        <button class="btn-header-arcade" style="align-self: flex-start; margin-bottom: 20px;" onclick="changeView('dashboard-view')">⬅ VOLVER AL DASHBOARD</button>
+        
+        <h1 class="learn-title">APRENDIZAJE GUIADO<br>TASKTUVCH</h1>
+        
+        <div class="learn-banner">
+            <p>¡Bienvenido! El aprendizaje mediante juegos (gamificación) no solo hace que retengas información un 40% más rápido, sino que transforma la frustración en diversión. Sumérgete en este entorno inspirado en los colores de Xochimilco y elige tu camino.</p>
+        </div>
+
+        <div class="select-prompt">Selecciona tu carrera:</div>
+
+        <div class="career-buttons-container">
+            <!-- 1. Maravillas Históricas -->
+            <button class="btn-career btn-mexico" onclick="desplegarSubmenu('mexico')">🔮 1. Maravillas Históricas</button>
+            <div class="games-submenu" id="menu-mexico">
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('TUVCHRUNNER: El Tren del Saber', 'Cultura General de México.html')">▶ 1. TUVCHRUNNER: El Tren del Saber</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('El Relámpago Prehispánico', 'El Relámpago Prehispánico.html')">▶ 2. El Relámpago Prehispánico (Rompe-bloques)</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('El Mural de la Lotería', 'EL MURAL DE LA LOTERÍA.html')">▶ 3. El Mural de la Lotería (Speed Clicker)</button>
+            </div>
+
+            <!-- 2. Sistemas Informáticos -->
+            <button class="btn-career btn-sistemas" onclick="desplegarSubmenu('sistemas')">💻 2. Sistemas Informáticos</button>
+            <div class="games-submenu" id="menu-sistemas">
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('CRM Zapatería', 'juego1.html')">▶ 1. CRM Ventas de Calzado (SQL)</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Agenda Android', 'juego2.html')">▶ 2. Agenda Escolar (Java/XML)</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Cyber Kill Chain', 'juego3.html')">▶ 3. Cyber Kill Chain Simulator</button>
+            </div>
+
+            <!-- 3. Cuidado de Personas Dependientes -->
+            <button class="btn-career btn-cuidados" onclick="desplegarSubmenu('cuidados')">🩺 3. Cuidado de Personas Dependientes</button>
+            <div class="games-submenu" id="menu-cuidados">
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Monitoreo Clínico', 'juego1_CPD.html')">▶ 1. Monitoreo Clínico de Camas</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Administración de Medicamentos', 'juego2_cpd.html')">▶ 2. Administración de Medicamentos</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Protocolo de Insumos', 'juego3_CPD.html')">▶ 3. Protocolo de Insumos (Ajolote Flotante)</button>
+            </div>
+
+            <!-- 4. Hoteles y Restaurantes -->
+            <button class="btn-career btn-hoteles" onclick="desplegarSubmenu('hoteles')">🏨 4. Hoteles y Restaurantes</button>
+            <div class="games-submenu" id="menu-hoteles">
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('TuvchRunner Hotel', 'juego1_HyR.html')">▶ 1. TUVCHRUNNER: Asignación de Habitaciones</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Comanda Cocina', 'juego2_HyR.html')">▶ 2. Comanda en la Cocina (Canvas)</button>
+                <button class="btn-game-launcher" onclick="conectarJuegoEnPantalla('Alerta Inspección', 'juego3_HyR.html')">▶ 3. ¡Alerta de Inspección! (Simon Says)</button>
+            </div>
+
+            <!-- 5. Mecatrónica -->
+            <button class="btn-career btn-mecatronica" style="cursor: not-allowed;" disabled>🤖 5. Mecatrónica (Próximamente)</button>
+        </div>
+    </section>
+
+    <!-- VISTA 5: PANTALLA ARCADE INTEGRADA -->
+    <section id="game-screen-view" class="view">
+        <div class="game-header">
+            <h2 id="game-frame-title">CARGANDO JUEGO...</h2>
+            <button class="btn-header-arcade" onclick="changeView('learn-view')">✖ CERRAR JUEGO</button>
+        </div>
+        <div class="arcade-iframe-container">
+            <iframe id="arcade-iframe" src=""></iframe>
+        </div>
+    </section>
+
+    <!-- MODAL AGREGAR TAREA -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-card">
+            <h3>NUEVA TAREA</h3>
+            <input type="hidden" id="modal-type">
+            <div class="form-group"><label>NOMBRE DE LA TAREA</label><input type="text" id="modal-name" class="arcade-input"></div>
+            <div class="form-group"><label>MATERIA</label><input type="text" id="modal-subject" class="arcade-input"></div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex:1;"><label>FECHA</label><input type="date" id="modal-date" class="arcade-input"></div>
+                <div class="form-group" style="flex:1;"><label>HORA</label><input type="time" id="modal-time" class="arcade-input"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-arcade" style="flex: 1;" onclick="saveNewTask()">GUARDAR</button>
+                <button class="btn-arcade" style="flex: 1; background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow);" onclick="closeTaskModal()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function changeView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(viewId !== 'game-screen-view') {
+                document.getElementById('arcade-iframe').src = "";
+            }
+        }
+        function switchTab(type) { changeView(type === 'login' ? 'login-view' : 'register-view'); }
+        function executeLogin(e) { e.preventDefault(); changeView('dashboard-view'); }
+        function executeRegister(e) { e.preventDefault(); changeView('dashboard-view'); }
+        function logout() { changeView('login-view'); }
+        
+        function triggerZeus() { alert("⚡ CONECTANDO A ZEUS AI... (Asistente Escolar Activo)"); }
+
+        function evaluarSubmenuAbierto(carreraId) {
+            const menu = document.getElementById(`menu-${carreraId}`);
+            return menu && menu.style.display === 'flex';
+        }
+
+        function desplegarSubmenu(carreraId) {
+            const yaAbierto = evaluarSubmenuAbierto(carreraId);
+            document.querySelectorAll('.games-submenu').forEach(m => m.style.display = 'none');
+            if(!yaAbierto) {
+                const menuActivo = document.getElementById(`menu-${carreraId}`);
+                if(menuActivo) menuActivo.style.display = 'flex';
+            }
+        }
+
+        function conectarJuegoEnPantalla(tituloDelJuego, nombreArchivoHtml) {
+            document.getElementById('game-frame-title').innerText = `JUGANDO: ${tituloDelJuego.toUpperCase()}`;
+            document.getElementById('arcade-iframe').src = nombreArchivoHtml;
+            changeView('game-screen-view');
+        }
+
+        let classes = ['Sistemas Informáticos', 'Bases de Datos', 'Desarrollo de Aplicaciones'];
+        let currentActiveClassIndex = null;
+
+        function renderClasses() {
+            const list = document.getElementById('classes-list');
+            list.innerHTML = '';
+            classes.forEach((c, index) => {
+                const item = document.createElement('div');
+                item.className = `interactive-item ${currentActiveClassIndex === index ? 'active-item' : ''}`;
+                item.onclick = () => { currentActiveClassIndex = index; renderClasses(); };
+                item.innerHTML = `<span>${c}</span>`;
+                list.appendChild(item);
+            });
+        }
+
+        function addClass() {
+            const newClass = prompt("Ingresa el nombre de la nueva materia:");
+            if (newClass && newClass.trim() !== "") { classes.push(newClass.trim()); renderClasses(); }
+        }
+
+        function deleteClass() {
+            if (currentActiveClassIndex !== null) {
+                if (confirm(`¿Borrar "${classes[currentActiveClassIndex]}"?`)) {
+                    classes.splice(currentActiveClassIndex, 1); currentActiveClassIndex = null; renderClasses();
+                }
+            } else { alert("Selecciona una clase primero."); }
+        }
+
+        let tasks = [
+            { id: 1, title: 'Entregar módulo de agenda', subject: 'Sistemas Informáticos', date: '2026-05-28', time: '23:59', desc: 'Subir el repositorio final.', type: 'principal', completed: false },
+            { id: 2, title: 'Revisar script SQL zapatería', subject: 'Bases de Datos', date: '2026-05-30', time: '14:00', desc: 'Checar integridad estructural.', type: 'secundaria', completed: false }
+        ];
+        let currentActiveId = null;
+
+        function renderTaskLists() {
+            const listPrincipal = document.getElementById('principal-list');
+            const listSecundaria = document.getElementById('secundaria-list');
+            listPrincipal.innerHTML = ''; listSecundaria.innerHTML = '';
+
+            tasks.forEach(t => {
+                const item = document.createElement('div');
+                item.className = `interactive-item ${t.id === currentActiveId ? 'active-item' : ''} ${t.completed ? 'task-completed' : ''}`;
+                item.onclick = () => selectTask(t.id);
+                item.innerHTML = `
+                    <div class="item-header"><span>${t.title}</span></div>
+                    <div class="item-meta"><span>${t.subject}</span><span>${t.date} ${t.time ? t.time : ''}</span></div>
+                `;
+                if(t.type === 'principal') listPrincipal.appendChild(item);
+                else listSecundaria.appendChild(item);
+            });
+            renderCalendar();
+        }
+
+        function selectTask(id) {
+            currentActiveId = id; const task = tasks.find(t => t.id === id); renderTaskLists();
+            document.getElementById('detail-title').innerText = task.title;
+            document.getElementById('detail-meta').innerText = `Materia: ${task.subject} | Fecha: ${task.date || '---'} | Hora: ${task.time || '---'}`;
+            document.getElementById('detail-desc').value = task.desc;
+        }
+
+        function openTaskModal(type) {
+            document.getElementById('modal-type').value = type; document.getElementById('task-modal').classList.add('active');
+        }
+        function closeTaskModal() { document.getElementById('task-modal').classList.remove('active'); }
+        
+        function saveNewTask() {
+            const title = document.getElementById('modal-name').value;
+            const subject = document.getElementById('modal-subject').value;
+            const date = document.getElementById('modal-date').value;
+            const time = document.getElementById('modal-time').value;
+            const type = document.getElementById('modal-type').value;
+            if(!title) return alert("Nombre obligatorio");
+            const newTask = { id: Date.now(), title, subject, date, time, desc: '', type, completed: false };
+            tasks.push(newTask); closeTaskModal(); renderTaskLists(); selectTask(newTask.id);
+        }
+
+        function saveDetails() {
+            if(!currentActiveId) return;
+            tasks.find(t => t.id === currentActiveId).desc = document.getElementById('detail-desc').value;
+            alert("Detalles guardados.");
+        }
+        function completeCurrentDetail() { if(currentActiveId) { tasks.find(t => t.id === currentActiveId).completed = !tasks.find(t => t.id === currentActiveId).completed; renderTaskLists(); } }
+        function deleteCurrentDetail() { if(currentActiveId) { tasks = tasks.filter(t => t.id !== currentActiveId); currentActiveId = null; renderTaskLists(); } }
+
+        let calDate = new Date();
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = `<div class="calendar-header-cell">Do</div><div class="calendar-header-cell">Lu</div><div class="calendar-header-cell">Ma</div><div class="calendar-header-cell">Mi</div><div class="calendar-header-cell">Ju</div><div class="calendar-header-cell">Vi</div><div class="calendar-header-cell">Sa</div>`;
+            const month = calDate.getMonth(); const year = calDate.getFullYear();
+            document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for(let i = 0; i < firstDay; i++) { grid.innerHTML += `<div class="calendar-day-cell dim"></div>`; }
+            for(let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const hasTask = tasks.some(t => t.date === dateStr && !t.completed);
+                const dot = hasTask ? `<div class="task-dot"></div>` : "";
+                grid.innerHTML += `<div class="calendar-day-cell" onclick="selectDateFromCalendar('${dateStr}')">${i}${dot}</div>`;
+            }
+        }
+
+        function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+        function selectDateFromCalendar(dateStr) {
+            const taskFound = tasks.find(t => t.date === dateStr);
+            if(taskFound) selectTask(taskFound.id);
+        }
+
+        window.onload = () => { renderClasses(); renderTaskLists(); };
+    </script>
+</body>
+</html>

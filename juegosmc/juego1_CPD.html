@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TUVCHRUNNER - Monitoreo Clínico</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background: #1a0813;
+    overflow: hidden;
+    color: white;
+    font-family: 'Fredoka', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top, #4a1535 0%, #12030c 65%);
+    z-index: -3;
+}
+
+.stars{
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 182, 193, 0.8) 1px, transparent 1px);
+    background-size: 45px 45px;
+    opacity: .12;
+    z-index: -2;
+}
+
+/* PANTALLA DE INICIO */
+.menu-inicio {
+    position: fixed;
+    inset: 0;
+    background: #12030c;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.menu-inicio h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2.6rem;
+    color: white;
+    text-shadow: 0 0 10px white, 0 0 20px #ff1493, 0 0 40px #ff1493;
+    margin-bottom: 10px;
+}
+
+.menu-inicio .subtitle {
+    margin-bottom: 40px;
+}
+
+.instrucciones {
+    background: rgba(0,0,0,.55);
+    border: 3px solid #ff69b4;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 650px;
+    margin-bottom: 40px;
+    box-shadow: 0 0 15px rgba(255,105,180,.3);
+}
+
+.instrucciones p {
+    font-size: 1.15rem;
+    margin-bottom: 25px;
+    line-height: 1.7rem;
+}
+
+.menu-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+/* HUD SUPERIOR */
+.top-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+}
+
+.btn-volver{
+    background: rgba(0,0,0,.45);
+    border: 3px solid #ff69b4;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: .3s;
+    box-shadow: 0 0 12px #ff69b4;
+}
+
+.btn-volver:hover{
+    transform: scale(1.05);
+    background: rgba(255,105,180,.15);
+}
+
+.center-title{
+    text-align: center;
+}
+
+.title{
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2.2rem;
+    color: white;
+    text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+}
+
+.subtitle{
+    margin-top: 8px;
+    font-family: 'Press Start 2P', cursive;
+    color: #ff69b4;
+    font-size: 0.8rem;
+}
+
+.hud{
+    display: flex;
+    gap: 15px;
+}
+
+.hud-box{
+    background: rgba(0,0,0,.45);
+    border: 3px solid #ff69b4;
+    border-radius: 15px;
+    padding: 10px 20px;
+    min-width: 130px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255,105,180,.5);
+}
+
+.hud-box h3{
+    font-family: 'Press Start 2P', cursive;
+    color: #ff69b4;
+    font-size: .7rem;
+    margin-bottom: 8px;
+}
+
+.hud-box p{
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.5rem;
+}
+
+#timer { color: #ff5c8a; }
+#score { color: #ffd600; }
+
+/* PANEL DE EVALUACIÓN / PREGUNTA */
+.question-container{
+    width: 90%;
+    margin: 10px auto;
+    border: 3px solid #ff69b4;
+    border-radius: 20px;
+    background: rgba(0,0,0,.5);
+    padding: 15px 25px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255,105,180,.4);
+}
+
+.question-container-label{
+    font-family: 'Press Start 2P', cursive;
+    color: #ff69b4;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+#question{
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.85rem;
+    line-height: 1.6rem;
+}
+
+/* ÁREA DINÁMICA DEL JUEGO */
+.game-container{
+    flex: 1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 160px 1fr 450px;
+    gap: 25px;
+    padding: 10px 50px;
+    align-items: center;
+    max-height: 60vh;
+}
+
+/* CAMAS CLÍNICAS */
+.hospital-beds{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.bed-unit {
+    width: 140px;
+    height: 80px;
+    border: 3px solid #ff69b4;
+    border-radius: 12px 12px 6px 6px;
+    background: linear-gradient(135deg, #2b0c20 0%, #12030c 100%);
+    position: relative;
+    box-shadow: 0 0 15px rgba(255,105,180,.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+}
+
+.bed-unit::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 35px;
+    height: 20px;
+    background: rgba(255, 105, 180, 0.25);
+    border: 1px dashed #ff69b4;
+    border-radius: 4px;
+}
+
+.bed-unit::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: rgba(255, 20, 147, 0.15);
+    border-top: 2px solid #ff69b4;
+    border-radius: 0 0 3px 3px;
+}
+
+.bed-label {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.65rem;
+    color: #ff69b4;
+    z-index: 2;
+    text-align: right;
+}
+
+.bed-status {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    color: #fff;
+    z-index: 2;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ZONA DE MOVIMIENTO DEL AJOLOTE */
+.player-zone{
+    height: 100%;
+    min-height: 280px;
+    border-left: 3px dashed rgba(255,105,180,.3);
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Aquí está la clase CSS para tu imagen */
+.axolote{
+    position: absolute;
+    width: 170px;
+    left: 40px;
+    transition: .25s ease-out;
+    filter: drop-shadow(0 0 15px #ff4fd8) drop-shadow(0 0 25px #ff1493);
+}
+
+/* PANEL DE EXPEDIENTES CLÍNICOS */
+.answers{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.answer{
+    background: rgba(0,0,0,.45);
+    border: 3px solid #ff69b4;
+    border-radius: 16px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 20px;
+    box-shadow: 0 0 12px rgba(255,105,180,.3);
+    position: relative;
+}
+
+.answer::before {
+    content: "EXPEDIENTE";
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: #ff69b4;
+    color: #12030c;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.5rem;
+    padding: 2px 8px;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+}
+
+.answer-letter{
+    width: 45px;
+    height: 45px;
+    border: 3px solid #ff69b4;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Press Start 2P', cursive;
+    color: #ff69b4;
+    font-size: 1.1rem;
+    background: rgba(0,0,0,.3);
+}
+
+.answer-text{
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.3rem;
+}
+
+/* CONTROLES */
+.control-box{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Press Start 2P', cursive;
+    color: #ff69b4;
+    font-size: .7rem;
+}
+
+.key{
+    padding: 10px 14px;
+    border: 3px solid #ff69b4;
+    border-radius: 12px;
+    background: rgba(0,0,0,.45);
+    box-shadow: 0 0 12px rgba(255,105,180,.5);
+}
+
+/* OVERLAY */
+.overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.94);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 999;
+}
+
+.overlay h1{
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2.5rem;
+    text-align: center;
+    color: #d9e3ea;
+    text-shadow: 0 0 20px rgba(255,255,255,.5);
+    margin-bottom: 25px;
+}
+
+.overlay p{
+    font-size: 1.8rem;
+    margin-bottom: 35px;
+}
+
+.overlay span{
+    color: #ff6ea8;
+    font-weight: bold;
+}
+
+.play-btn{
+    border: none;
+    padding: 18px 35px;
+    border-radius: 20px;
+    background: #ff1493;
+    color: white;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .3s;
+    box-shadow: 0 0 15px rgba(255,20,147,.4);
+}
+
+.play-btn:hover{
+    transform: scale(1.05);
+    background: #ff69b4;
+}
+
+@media(max-width:1200px){
+    .game-container{ grid-template-columns: 150px 1fr; }
+    .answers{ grid-column: span 2; }
+    .player-zone{ min-height: 240px; }
+    .axolote{ width: 130px; }
+}
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="menu-inicio" id="menuInicio">
+    <h1 class="title">TUVCHRUNNER</h1>
+    <div class="subtitle">MONITOREO DE CUIDADOS ASISTENCIALES</div>
+    
+    <div class="instrucciones">
+        <p>¡Bienvenido/a al panel de simulación clínica! Desplaza al ajolote asistente hacia la camilla que corresponda al expediente clínico con la respuesta correcta.</p>
+        
+        <div class="menu-controls">
+            <div class="control-box">
+                <div class="key">↑</div>
+                <div class="key">↓</div>
+                <span>SELECCIONAR CAMA</span>
+            </div>
+            <div class="control-box">
+                <div class="key">ESPACIO</div>
+                <span>ADMINISTRAR ATENCIÓN</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="play-btn" onclick="comenzarJuego()">Iniciar Turno Clínico</button>
+</div>
+
+<div class="top-bar">
+    <button class="btn-volver" onclick="regresarAlMenu()">
+        ⬅ SALIR
+    </button>
+
+    <div class="center-title">
+        <h1 class="title" style="font-size: 1.8rem;">TUVCHRUNNER</h1>
+        <div class="subtitle">CENTRAL DE ENFERMERÍA Y CUIDADOS</div>
+    </div>
+
+    <div class="hud">
+        <div class="hud-box">
+            <h3>TIEMPO</h3>
+            <p id="timer">25s</p>
+        </div>
+        <div class="hud-box">
+            <h3>PUNTOS</h3>
+            <p id="score">0</p>
+        </div>
+    </div>
+</div>
+
+<div class="question-container">
+    <div class="question-container-label">CONDICIÓN / CASO CLÍNICO</div>
+    <div id="question"></div>
+</div>
+
+<div class="game-container">
+    <div class="hospital-beds">
+        <div class="bed-unit">
+            <div class="bed-label">CAMA 1</div>
+            <div class="bed-status">A</div>
+        </div>
+        <div class="bed-unit">
+            <div class="bed-label">CAMA 2</div>
+            <div class="bed-status">B</div>
+        </div>
+        <div class="bed-unit">
+            <div class="bed-label">CAMA 3</div>
+            <div class="bed-status">C</div>
+        </div>
+    </div>
+
+    <div class="player-zone">
+        <img src="cpd.png" class="axolote" id="axolote">
+    </div>
+
+    <div class="answers">
+        <div class="answer">
+            <div class="answer-letter">A</div>
+            <div class="answer-text" id="a0"></div>
+        </div>
+        <div class="answer">
+            <div class="answer-letter">B</div>
+            <div class="answer-text" id="a1"></div>
+        </div>
+        <div class="answer">
+            <div class="answer-letter">C</div>
+            <div class="answer-text" id="a2"></div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <h1 id="finalTitle">¡TURNO CONCLUIDO!</h1>
+    <p>Puntuación de Eficiencia: <span id="finalScore">0</span></p>
+    <button class="play-btn" onclick="location.reload()">Iniciar Nuevo Turno</button>
+</div>
+
+<script>
+const preguntas = [
+    {
+        q:"¿Cuál es la postura ideal para evitar lesiones al levantar peso?",
+        a:["Espalda recta y rodillas flexionadas","Espalda curva y piernas rectas","Inclinando todo el torso de lado"],
+        correcta:0
+    },
+    {
+        q:"¿Cada cuánto tiempo se recomiendan los cambios posturales en cama?",
+        a:["Cada 8 horas de jornada","Cada 2 a 3 horas continuas","Únicamente una vez al día"],
+        correcta:1
+    },
+    {
+        q:"¿Qué escala se utiliza comúnmente para evaluar el riesgo de úlceras por presión?",
+        a:["Escala de Glasgow","Escala de Norton o Braden","Escala de Visual Análoga"],
+        correcta:1
+    },
+    {
+        q:"¿Cuál es el valor considerado normal de la presión arterial sistólica?",
+        a:["Menor a 120 mmHg","Mayor a 150 mmHg","Exactamente 60 mmHg"],
+        correcta:0
+    },
+    {
+        q:"Principio ético que respeta el derecho del paciente a decidir por sí mismo:",
+        a:["Beneficencia","No maleficencia","Autonomía"],
+        correcta:2
+    }
+];
+
+let tiempo = 25; 
+let puntos = 0;
+let preguntaActual = 0;
+let respuestasCorrectas = 0; 
+let carril = 1; 
+let juegoTerminado = false;
+let juegoIniciado = false;
+let intervalo;
+
+const axolote = document.getElementById('axolote');
+
+function comenzarJuego() {
+    document.getElementById('menuInicio').style.display = 'none';
+    juegoIniciado = true;
+    actualizarPregunta();
+    iniciarContador();
+}
+
+function regresarAlMenu() {
+    window.location.href = 'vista.html';
+}
+
+function actualizarPregunta(){
+    if(preguntaActual >= preguntas.length) return;
+    
+    document.getElementById('question').innerText = preguntas[preguntaActual].q;
+    for(let i=0; i<3; i++){
+        document.getElementById(`a${i}`).innerText = preguntas[preguntaActual].a[i];
+    }
+}
+
+function moverAjolote(){
+    const posiciones = [
+        "translateY(-100px)",
+        "translateY(0px)",
+        "translateY(100px)"
+    ];
+    axolote.style.transform = posiciones[carril];
+}
+
+window.addEventListener('keydown',(e)=>{
+    if(!juegoIniciado || juegoTerminado) return;
+
+    if(e.key === 'ArrowUp' && carril > 0){
+        carril--;
+        moverAjolote();
+    }
+    if(e.key === 'ArrowDown' && carril < 2){
+        carril++;
+        moverAjolote();
+    }
+    if(e.key === ' ' || e.key === 'Spacebar'){
+        e.preventDefault(); 
+        verificar();
+    }
+});
+
+function verificar(){
+    if(carril === preguntas[preguntaActual].correcta){
+        puntos += 15;
+        tiempo += 2; 
+        respuestasCorrectas++; 
+    } else {
+        puntos -= 5;
+        tiempo -= 2; 
+    }
+
+    document.getElementById('score').innerText = puntos;
+    preguntaActual++;
+
+    if(preguntaActual >= preguntas.length){
+        if(respuestasCorrectas === preguntas.length) {
+            finalizar("¡EXCELENTE EVALUACIÓN CLÍNICA!"); 
+        } else if(respuestasCorrectas >= 2) {
+            finalizar("¡BUEN DESEMPEÑO ASISTENCIAL!"); 
+        } else {
+            finalizar("¡REPASAR PROTOCOLOS DE CUIDADO!"); 
+        }
+        return;
+    }
+
+    actualizarPregunta();
+}
+
+function iniciarContador() {
+    intervalo = setInterval(()=>{
+        if(juegoTerminado) return;
+
+        if(tiempo > 0){
+            tiempo--;
+            document.getElementById('timer').innerText = tiempo + "s";
+        }
+
+        if(tiempo <= 0){
+            tiempo = 0;
+            document.getElementById('timer').innerText = "0s";
+            finalizar("¡SE AGOTÓ EL TIEMPO DE ATENCIÓN!"); 
+        }
+    },1000);
+}
+
+function finalizar(texto){
+    juegoTerminado = true;
+    clearInterval(intervalo);
+
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('finalTitle').innerText = texto;
+    document.getElementById('finalScore').innerText = puntos;
+}
+</script>
+
+</body>
+</html>

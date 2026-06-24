@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - El Relámpago Prehispánico</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body{
+        background: #0f0c1b;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #1a153a 0%, #0a0813 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 105, 180, 0.4) 1px, transparent 1px),
+                          radial-gradient(rgba(0, 230, 118, 0.4) 1px, transparent 1px);
+        background-size: 50px 50px, 70px 70px;
+        background-position: 0 0, 25px 25px;
+        opacity: .2;
+        z-index: -2;
+    }
+
+    /* PANTALLA DE INICIO */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #0a0813;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .split-container {
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        width: 100%;
+        max-width: 1100px;
+        align-items: stretch;
+    }
+
+    .screen-left {
+        flex: 1;
+        background: rgba(20, 15, 38, 0.6);
+        border: 3px solid #ff1493;
+        border-radius: 24px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(255, 20, 147, 0.2);
+    }
+
+    .carrera-label {
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px rgba(255, 214, 0, 0.5);
+    }
+
+    .menu-logo {
+        width: 220px;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 20px;
+        border: 3px solid #ff1493;
+        margin-bottom: 25px;
+        box-shadow: 0 0 15px rgba(255, 20, 147, 0.4);
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+        margin-bottom: 12px;
+        line-height: 2.2rem;
+    }
+
+    .menu-inicio .subtitle {
+        font-family: 'Press Start 2P', cursive;
+        color: #29b6f6;
+        font-size: 0.7rem;
+    }
+
+    .screen-right {
+        flex: 1.2;
+        background: rgba(20, 15, 38, 0.75);
+        border: 3px solid #00e676;
+        border-radius: 24px;
+        padding: 35px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
+    }
+
+    .instrucciones-title {
+        font-family: 'Press Start 2P', cursive;
+        color: #00e676;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .screen-right p {
+        font-size: 1.05rem;
+        line-height: 1.6rem;
+        margin-bottom: 15px;
+        color: #e0dff2;
+    }
+
+    .menu-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 25px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 15px;
+    }
+
+    .control-box {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-family: 'Press Start 2P', cursive;
+        color: #29b6f6;
+        font-size: 0.65rem;
+    }
+
+    .key{
+        padding: 6px 12px;
+        border: 2px solid #29b6f6;
+        border-radius: 8px;
+        background: rgba(0,0,0,.4);
+        min-width: 40px;
+        text-align: center;
+        color: white;
+    }
+
+    /* HUD SUPERIOR */
+    .top-bar{
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+    }
+
+    .btn-volver{
+        background: rgba(0,0,0,.3);
+        border: 3px solid #00e676;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+    .btn-volver:hover{
+        transform: scale(1.05);
+        background: rgba(0, 230, 118, 0.15);
+    }
+
+    .center-title{
+        text-align: center;
+    }
+
+    .title-juego{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+    }
+
+    .subtitle-juego{
+        margin-top: 8px;
+        font-family: 'Press Start 2P', cursive;
+        color: #00e676;
+        font-size: 0.75rem;
+    }
+
+    .hud{
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box{
+        background: rgba(0,0,0,.4);
+        border: 3px solid #ffd600;
+        border-radius: 15px;
+        padding: 10px 15px;
+        min-width: 140px;
+        text-align: center;
+    }
+
+    .hud-box h3{
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        font-size: .65rem;
+        margin-bottom: 8px;
+    }
+
+    .hud-box p{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.2rem;
+    }
+
+    #timer { color: #ff5c8a; }
+    #score { color: #00e676; }
+
+    /* ÁREA DE JUEGO */
+    #main-game-container {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
+    }
+
+    .question-container{
+        width: 90%;
+        max-width: 760px;
+        margin: 5px auto 10px auto;
+        border: 3px solid #ff1493;
+        border-radius: 20px;
+        background: rgba(15, 10, 30, 0.75);
+        padding: 15px 25px;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
+    }
+
+    .question-label{
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        margin-bottom: 8px;
+        font-size: 0.8rem;
+    }
+
+    #question{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.75rem;
+        line-height: 1.5rem;
+    }
+
+    #canvas-wrapper {
+        position: relative;
+        width: 760px;
+        height: 400px;
+    }
+
+    canvas {
+        background: rgba(0, 0, 0, 0.5);
+        border: 3px solid #00ebff;
+        border-radius: 20px;
+        box-shadow: 0 0 25px rgba(0, 235, 255, 0.25);
+        display: block;
+    }
+
+    .axolote-paddle {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        pointer-events: none;
+        z-index: 5;
+        filter: drop-shadow(0 0 10px #ff1493);
+    }
+
+    /* EFECTOS DE IMPACTO EN PANTALLA */
+    .flash-screen {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        border-radius: 20px;
+    }
+    .flash-red { background: rgba(255, 0, 0, 0.35); animation: flashAnim 0.4s ease-out; }
+    .flash-green { background: rgba(0, 255, 0, 0.35); animation: flashAnim 0.4s ease-out; }
+
+    @keyframes flashAnim {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    /* OVERLAY FIN */
+    .overlay{
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 8, 19, 0.95);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999;
+    }
+
+    .overlay h1{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.3rem;
+        text-align: center;
+        color: #ffffff;
+        text-shadow: 0 0 20px #ff1493;
+        margin-bottom: 25px;
+    }
+
+    .overlay p{
+        font-size: 1.8rem;
+        margin-bottom: 35px;
+    }
+
+    .play-btn{
+        border: none;
+        padding: 16px 35px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ff1493 0%, #ff9100 100%);
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.25rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 15px rgba(255, 20, 147, 0.4);
+    }
+
+    .play-btn:hover { transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="menu-inicio" id="menuInicio">
+    <div class="split-container">
+        <div class="screen-left">
+            <div class="carrera-label">MARAVILLAS HISTÓRICAS</div>
+            <img src="ajolote_mexicano.png" class="menu-logo" alt="Logo Ajolote">
+            <h1>EL RELÁMPAGO PREHISPÁNICO</h1>
+            <div class="subtitle">TRIVIA SHOOTER ARCADE</div>
+        </div>
+        
+        <div class="screen-right">
+            <div>
+                <div class="instrucciones-title">PANEL DE CONTROL DE ARMA</div>
+                <p>Mueve al ajolote a los lados. ¡Presiona <b>ESPACIO</b> para disparar relámpagos de energía y destruir los bloques flotantes!</p>
+                <p>Debes darle <b>5 tiros</b> al bloque que tenga la respuesta correcta. <b>¡Cuidado!</b> Cada ráfaga que disparas te quita 1 segundo de tiempo. Romper la respuesta incorrecta te restará 5 segundos de golpe.</p>
+                <p>¡Consigue una racha de 3 aciertos para acelerar el juego y junta 10 puntos para ganar!</p>
+            </div>
+            
+            <div class="menu-controls">
+                <div class="control-box">
+                    <div class="key">←</div>
+                    <div class="key">→</div>
+                    <span>MOVER AL AJOLOTE</span>
+                </div>
+                <div class="control-box">
+                    <div class="key" style="min-width: 110px;">ESPACIO</div>
+                    <span>DISPARAR BALA (-1s)</span>
+                </div>
+            </div>
+            
+            <button class="play-btn" onclick="comenzarJuego()">Iniciar Desafío</button>
+        </div>
+    </div>
+</div>
+
+<div class="top-bar">
+    <button class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+    <div class="center-title">
+        <h1 class="title-juego">EL RELÁMPAGO PREHISPÁNICO</h1>
+        <div class="subtitle-juego">MÉXICO Y SUS MARAVILLAS</div>
+    </div>
+
+    <div class="hud">
+        <div class="hud-box">
+            <h3>TIEMPO</h3>
+            <p id="timer">60s</p>
+        </div>
+        <div class="hud-box">
+            <h3>PROGRESO</h3>
+            <p id="score">0 / 10</p>
+        </div>
+    </div>
+</div>
+
+<div id="main-game-container">
+    <div class="question-container">
+        <div class="question-label">PREGUNTA DE CULTURA GENERAL</div>
+        <div id="question">Cargando trivia...</div>
+    </div>
+
+    <div id="canvas-wrapper">
+        <canvas id="gameCanvas" width="760" height="400"></canvas>
+        <img src="ajolote_azteca.png" class="axolote-paddle" id="axoloteVisual">
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <h1 id="finalTitle">¡TIEMPO AGOTADO!</h1>
+    <p>Aciertos conseguidos: <span id="finalScore" style="color:#ffd600">0</span></p>
+    <button class="play-btn" onclick="location.reload()">Volver a Intentar</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const axoloteVisual = document.getElementById('axoloteVisual');
+
+    // BANCO DE 30 PREGUNTAS SOBRE CULTURA GENERAL / HISTORIA DE MÉXICO
+    const bancoPreguntas = [
+        { q: "¿En qué año comenzó la Guerra de Independencia de México?", a: ["1810", "1821", "1910"], correct: 0 },
+        { q: "¿Quién es conocido como el 'Benemérito de las Américas'?", a: ["Miguel Hidalgo", "Benito Juárez", "Porfirio Díaz"], correct: 1 },
+        { q: "¿Cuál es la capital del estado de Jalisco?", a: ["Monterrey", "Mérida", "Guadalajara"], correct: 2 },
+        { q: "¿Qué ingrediente es la base principal del guacamole tradicional?", a: ["Aguacate", "Tomate", "Chile Serrano"], correct: 0 },
+        { q: "¿Qué cultura prehispánica esculpió las cabezas colosales?", a: ["Maya", "Olmeca", "Zapoteca"], correct: 1 },
+        { q: "¿Cuál es el volcán más alto de toda la República Mexicana?", a: ["Popocatépetl", "Iztaccíhuatl", "Pico de Orizaba"], correct: 2 },
+        { q: "En qué estado se localiza la zona arqueológica de Palenque?", a: ["Chiapas", "Yucatán", "Oaxaca"], correct: 0 },
+        { q: "¿Quién pintó los famosos murales en el Palacio Nacional?", a: ["Rufino Tamayo", "Diego Rivera", "David Alfaro Siqueiros"], correct: 1 },
+        { q: "¿Qué ciudad mexicana es famosa por sus momias naturales?", a: ["Querétaro", "Zacatecas", "Guanajuato"], correct: 2 },
+        { q: "¿Qué se conmemora oficialmente en México el 5 de mayo?", a: ["La Batalla de Puebla", "La Revolución Mexicana", "La Consumación de Independencia"], correct: 0 },
+        { q: "¿Cuál es el animal nacional que aparece en el escudo mexicano?", a: ["El Jaguar", "El Águila Real", "El Lobo Gris"], correct: 1 },
+        { q: "¿Qué bebida ancestral mexicana se extrae directamente del maguey?", a: ["Tequila", "Mezcal", "Pulque"], correct: 2 },
+        { q: "¿Quién fue el último tlatoani de la Gran Tenochtitlan?", a: ["Cuauhtémoc", "Moctezuma", "Cuitláhuac"], correct: 0 },
+        { q: "¿En qué estado de la república se encuentra Chichén Itzá?", a: ["Quintana Roo", "Yucatán", "Campeche"], correct: 1 },
+        { q: "¿Qué escritor mexicano ganó el Premio Nobel de Literatura?", a: ["Juan Rulfo", "Carlos Fuentes", "Octavio Paz"], correct: 2 },
+        { q: "¿Cuál es la moneda de curso legal en todo México?", a: ["Peso Mexicano", "Dólar", "Real"], correct: 0 },
+        { q: "¿Qué emblemática pintora vivió en la famosa 'Casa Azul'?", a: ["Leonora Carrington", "Frida Kahlo", "Remedios Varo"], correct: 1 },
+        { q: "¿Qué danza tradicional de Michoacán usa máscaras de ancianos?", a: ["Danza de los Venados", "Danza de los Voladores", "Danza de los Viejitos"], correct: 2 },
+        { q: "¿Cuál es el océano que colinda con las costas occidentales de México?", a: ["Océano Pacífico", "Océano Atlántico", "Mar Caribe"], correct: 0 },
+        { q: "¿Qué planta desértica es un elemento sagrado para los huicholes?", a: ["Saguaro", "Peyote", "Ágave"], correct: 1 },
+        { q: "¿En qué península mexicana se encuentra el estado de Baja California Sur?", a: ["Yucatán", "Las Californias", "Florida"], correct: 1 },
+        { q: "¿Qué tratado dio fin a la guerra de Independencia de México?", a: ["Tratados de Córdoba", "Tratado de Guadalupe", "Tratado de Tlatelolco"], correct: 0 },
+        { q: "Qué sistema de agricultura flotante inventaron los aztecas?", a: ["Terrazas", "Riego por Goteo", "Chinampas"], correct: 2 },
+        { q: "¿Quién compuso la letra del Himno Nacional Mexicano?", a: ["Jaime Nunó", "Francisco González Bocanegra", "Mariano Matamoros"], correct: 1 },
+        { q: "¿Cuál es la segunda ciudad más poblada de México?", a: ["Guadalajara", "Monterrey", "Puebla"], correct: 0 },
+        { q: "¿Qué estado mexicano es el mayor productor de plata del mundo?", a: ["Sonora", "Zacatecas", "Chihuahua"], correct: 1 },
+        { q: "¿En qué año se inauguró el Metro de la Ciudad de México?", a: ["1950", "1985", "1969"], correct: 2 },
+        { q: "¿Qué famoso científico mexicano inventó la píldora anticonceptiva?", a: ["Luis Miramontes", "Guillermo Camarena", "Mario Molina"], correct: 0 },
+        { q: "¿Qué reserva natural mexicana protege la hibernación de un insecto?", a: ["Santuario Mariposa Monarca", "Biosfera de Mapimí", "El Vizcaíno"], correct: 0 },
+        { q: "¿Cuál de estas zonas arqueológicas se conoce como 'Ciudad de los Dioses'?", a: ["Monte Albán", "Teotihuacán", "Tulum"], correct: 1 }
+    ];
+
+    let score = 0, timeLeft = 60, currentQ = 0, streak = 0, gameRunning = false, loopInterval, timerInterval;
+
+    let paddle = { x: 330, y: 360, width: 100, height: 12, speed: 14 };
+    let bullets = [];
+    let blocks = [];
+    
+    const blockColors = ["#ff9100", "#00e676", "#ff1493"];
+    let keys = { Left: false, Right: false };
+
+    // Función útil para mezclar el orden de las preguntas al inicio
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function comenzarJuego() {
+        document.getElementById('menuInicio').style.display = 'none';
+        gameRunning = true;
+        score = 0;
+        currentQ = 0;
+        streak = 0;
+        timeLeft = 60;
+        bullets = [];
+        
+        document.getElementById('score').innerText = "0 / 10";
+        document.getElementById('timer').innerText = "60s";
+
+        shuffleArray(bancoPreguntas); // Aleatorizar preguntas
+        cargarPregunta();
+        
+        timerInterval = setInterval(() => {
+            if(timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft + "s";
+            } else {
+                finalizar("¡TIEMPO AGOTADO!");
+            }
+        }, 1000);
+
+        loopInterval = setInterval(gameLoop, 1000 / 60);
+    }
+
+    function regresarAlMenu() { window.location.href = 'vista.html'; }
+
+    function cargarPregunta() {
+        if(currentQ >= bancoPreguntas.length || score >= 10) {
+            finalizar("¡VICTORIA TRIVIAL COMPLETA!");
+            return;
+        }
+
+        const qData = bancoPreguntas[currentQ];
+        document.getElementById('question').innerText = qData.q;
+
+        blocks = [];
+        let blockWidth = 210;
+        let blockHeight = 55;
+
+        // La velocidad base incrementa según la racha (streak) de 3 en 3
+        let speedMultiplier = 2 + Math.floor(streak / 3) * 1.5;
+
+        for(let i=0; i<3; i++) {
+            let angle = (Math.PI / 4) + (i * Math.PI / 4);
+            blocks.push({
+                x: 40 + i * (blockWidth + 25),
+                y: 35 + (i % 2) * 35,
+                width: blockWidth,
+                height: blockHeight,
+                text: `${i + 1}. ${qData.a[i]}`,
+                color: blockColors[i],
+                index: i,
+                hits: 5, // Cada bloque aguanta 5 tiros
+                vx: Math.cos(angle) * speedMultiplier,
+                vy: Math.sin(angle) * speedMultiplier * 0.4
+            });
+        }
+        bullets = [];
+    }
+
+    // DISPARAR BALA
+    function shootBullet() {
+        if(!gameRunning) return;
+
+        // Penalización por disparo: Resta 1 segundo
+        timeLeft -= 1;
+        if(timeLeft < 0) timeLeft = 0;
+        document.getElementById('timer').innerText = timeLeft + "s";
+
+        bullets.push({
+            x: paddle.x + paddle.width / 2,
+            y: paddle.y - 5,
+            radius: 4,
+            vy: -9
+        });
+
+        // MECÁNICA DE DIFICULTAD: Cada tiro altera la dirección y velocidad aleatoriamente de las preguntas
+        blocks.forEach(b => {
+            let currentSpeed = 2 + Math.floor(streak / 3) * 1.5;
+            let randAngle = Math.random() * Math.PI * 2;
+            b.vx = Math.cos(randAngle) * currentSpeed;
+            b.vy = Math.sin(randAngle) * currentSpeed * 0.5;
+        });
+    }
+
+    // EFECTO DE COLOR EN LA PANTALLA
+    function triggerFlash(type) {
+        const wrapper = document.getElementById('canvas-wrapper');
+        let flash = document.createElement('div');
+        flash.className = `flash-screen flash-${type}`;
+        wrapper.appendChild(flash);
+        setTimeout(() => { flash.remove(); }, 400);
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowLeft') keys.Left = true;
+        if(e.key === 'ArrowRight') keys.Right = true;
+        if(e.key === ' ' || e.code === 'Space') {
+            e.preventDefault(); // Evita scroll de pantalla
+            shootBullet();
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowLeft') keys.Left = false;
+        if(e.key === 'ArrowRight') keys.Right = false;
+    });
+
+    function updatePhysics() {
+        // Movimiento del jugador
+        if(keys.Left && paddle.x > 0) paddle.x -= paddle.speed;
+        if(keys.Right && paddle.x < canvas.width - paddle.width) paddle.x += paddle.speed;
+
+        // Acoplar visualmente el ajolote
+        axoloteVisual.style.left = (paddle.x + (paddle.width / 2) - 50) + "px";
+        axoloteVisual.style.top = (paddle.y - 85) + "px";
+
+        // Fisicas de las balas
+        for(let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.y += b.vy;
+
+            // Eliminar bala si sale del lienzo
+            if(b.y < 0) {
+                bullets.splice(i, 1);
+                continue;
+            }
+
+            // Colisión de balas con respuestas flotantes
+            for(let j = blocks.length - 1; j >= 0; j--) {
+                let blk = blocks[j];
+                if(b.x >= blk.x && b.x <= blk.x + blk.width && b.y >= blk.y && b.y <= blk.y + blk.height) {
+                    
+                    blk.hits--; // Descuenta un tiro al bloque
+                    bullets.splice(i, 1); // Quita la bala
+
+                    if(blk.hits <= 0) {
+                        // ¡Bloque destruido! Verificar si es correcto
+                        if(blk.index === bancoPreguntas[currentQ].correct) {
+                            triggerFlash('green');
+                            score += 1;
+                            streak += 1; // Sube la racha
+                            document.getElementById('score').innerText = `${score} / 10`;
+                            
+                            if(score >= 10) {
+                                finalizar("¡FANTÁSTICO! ¡CULTURA IMPERIAL!");
+                            } else {
+                                currentQ++;
+                                setTimeout(cargarPregunta, 100);
+                            }
+                        } else {
+                            // Respuesta incorrecta destruida por completo
+                            triggerFlash('red');
+                            timeLeft -= 5; // Castigo de 5 segundos
+                            if(timeLeft < 0) timeLeft = 0;
+                            document.getElementById('timer').innerText = timeLeft + "s";
+                            streak = 0; // Se corta la racha
+
+                            // Elimina la opción fallida para que siga disparando al resto
+                            blocks.splice(j, 1);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Movimiento y rebote automático de los bloques de respuestas
+        blocks.forEach(b => {
+            b.x += b.vx;
+            b.y += b.vy;
+
+            if(b.x < 0 || b.x + b.width > canvas.width) b.vx *= -1;
+            // Delimitador superior para mantenerlos flotando arriba
+            if(b.y < 15 || b.y + b.height > 230) b.vy *= -1;
+        });
+    }
+
+    function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dibujar respuestas flotantes
+        for(let b of blocks) {
+            ctx.fillStyle = "rgba(10, 5, 25, 0.8)";
+            ctx.beginPath();
+            ctx.roundRect(b.x, b.y, b.width, b.height, 12);
+            ctx.fill();
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Texto de la respuesta
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "600 11px 'Fredoka', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(b.text, b.x + b.width / 2, b.y + b.height / 3 + 3);
+
+            // Barra de vida interna (5 tiros)
+            let barWidth = b.width - 40;
+            let barHeight = 5;
+            let barX = b.x + 20;
+            let barY = b.y + b.height - 15;
+
+            ctx.fillStyle = "rgba(255,255,255,0.15)";
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            ctx.fillStyle = b.color;
+            ctx.fillRect(barX, barY, barWidth * (b.hits / 5), barHeight);
+        }
+
+        // Indicador de la base del arma del Jugador
+        ctx.fillStyle = "rgba(0, 235, 255, 0.3)";
+        ctx.beginPath();
+        ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 4);
+        ctx.fill();
+
+        // Dibujar proyectiles de relámpago
+        ctx.fillStyle = "#ffd600";
+        ctx.shadowColor = "#ffd600";
+        ctx.shadowBlur = 12;
+        for(let bullet of bullets) {
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.shadowBlur = 0; 
+    }
+
+    function gameLoop() {
+        if(!gameRunning) return;
+        updatePhysics();
+        drawGame();
+    }
+
+    function finalizar(msg) {
+        gameRunning = false;
+        clearInterval(loopInterval);
+        clearInterval(timerInterval);
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('finalTitle').innerText = msg;
+        document.getElementById('finalScore').innerText = score;
+        if(score >= 10){
+            document.getElementById('finalTitle').style.textShadow = "0 0 20px #00e676";
+        }
+    }
+</script>
+
+</body>
+</html>

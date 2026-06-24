@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - PROTOCOLO INSUMOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body{
+        background: #1a0813;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #4a1535 0%, #12030c 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 182, 193, 0.8) 1px, transparent 1px);
+        background-size: 45px 45px;
+        opacity: .12;
+        z-index: -2;
+    }
+
+    /* BARRA SUPERIOR CON GRID PARA CENTRADO PERFECTO */
+    .top-bar{
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 15px 30px;
+        z-index: 10;
+    }
+
+    .btn-volver{
+        justify-self: start;
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff69b4;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 12px #ff69b4;
+    }
+
+    .btn-volver:hover{
+        transform: scale(1.05);
+        background: rgba(255,105,180,.15);
+    }
+
+    .center-title{
+        text-align: center;
+    }
+
+    .title{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.8rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+        margin: 0;
+    }
+
+    .subtitle{
+        margin-top: 5px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: 0.8rem;
+        display: block;
+    }
+
+    .hud{
+        justify-self: end;
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box{
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff69b4;
+        border-radius: 15px;
+        padding: 8px 15px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .hud-box h3{
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: .6rem;
+        margin-bottom: 5px;
+    }
+
+    .hud-box p{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.2rem;
+        color: #ffd600;
+        margin: 0;
+    }
+
+    /* PANTALLA DE INICIO */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #12030c;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.2rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493, 0 0 40px #ff1493;
+        margin-bottom: 10px;
+    }
+
+    .instrucciones {
+        background: rgba(0,0,0,.55);
+        border: 3px solid #ff69b4;
+        border-radius: 20px;
+        padding: 25px 35px;
+        width: 90%;
+        max-width: 700px;
+        margin-bottom: 30px;
+        box-shadow: 0 0 15px rgba(255,105,180,.3);
+    }
+
+    .instrucciones p {
+        font-size: 1.15rem;
+        margin-bottom: 25px;
+        line-height: 1.7rem;
+    }
+
+    .menu-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        max-width: 550px;
+        margin: 0 auto;
+    }
+
+    .control-box {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: 0.65rem;
+        line-height: 1.2rem;
+    }
+
+    .key {
+        padding: 8px 12px;
+        border: 2px solid #ff69b4;
+        border-radius: 8px;
+        background: rgba(0,0,0,.45);
+        min-width: 45px;
+        text-align: center;
+        color: white;
+    }
+
+    /* ÁREA DE JUEGO */
+    #game-area {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    /* TARJETA DE INSUMO CON LETRA GRANDE */
+    #insumo-card {
+        background: rgba(0,0,0,0.7);
+        border: 3px solid #ff69b4;
+        border-radius: 15px;
+        padding: 25px;
+        width: 400px; 
+        text-align: center;
+        position: absolute;
+        top: 25px;
+        box-shadow: 0 0 20px rgba(255,105,180,0.5);
+        z-index: 5;
+        transition: all 0.2s ease-out;
+    }
+
+    #insumo-card-label {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: 0.65rem;
+        margin-bottom: 12px;
+    }
+
+    #insumo-name {
+        font-size: 1.6rem; 
+        font-weight: 600;
+        color: white;
+        line-height: 2.2rem;
+    }
+
+    /* ANIMACIÓN DE FLOTAR PARA EL AJOLOTE */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* AJOLOTE CENTRAL EN MOVIMIENTO INFINITO */
+    .axolote-img {
+        width: 180px; 
+        position: absolute;
+        top: 175px;
+        z-index: 1;
+        filter: drop-shadow(0 0 15px #ff1493);
+        animation: float 3s ease-in-out infinite; 
+        transition: left 0.2s ease-out, top 0.2s ease-out;
+    }
+
+    /* CONTENEDORES CON LETRA MEJORADA */
+    #containers-area {
+        width: 100%;
+        position: absolute;
+        bottom: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        padding: 0 50px;
+    }
+
+    .waste-container {
+        flex: 1;
+        max-width: 280px;
+        height: 125px;
+        border-radius: 15px;
+        border: 4px solid;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: rgba(0,0,0,0.6);
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+
+    .waste-container:hover { transform: scale(1.05); }
+
+    .waste-container h3 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.65rem;
+        margin-bottom: 10px;
+    }
+
+    .waste-container p {
+        font-size: 1.05rem; 
+        font-weight: 500;
+        color: white;
+        line-height: 1.3rem;
+    }
+
+    .container-rpbi { border-color: #ff1744; color: #ff1744; }
+    .container-comun { border-color: #9e9e9e; color: #9e9e9e; }
+    .container-curacion { border-color: #00e676; color: #00e676; }
+
+    /* FEEDBACK VISUAL */
+    #feedback-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        pointer-events: none;
+    }
+
+    @keyframes correct-flash {
+        0% { background-color: rgba(0, 230, 118, 0.3); }
+        100% { background-color: rgba(0,0,0,0); }
+    }
+    .correct-flash { animation: correct-flash 0.3s ease-out; }
+
+    @keyframes wrong-flash {
+        0% { background-color: rgba(255, 23, 68, 0.3); }
+        100% { background-color: rgba(0,0,0,0); }
+    }
+    .wrong-flash { animation: wrong-flash 0.3s ease-out; }
+
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.94);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999;
+    }
+
+    .overlay h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2rem;
+        text-align: center;
+        color: #d9e3ea;
+        margin-bottom: 25px;
+    }
+
+    .play-btn {
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        background: #ff1493;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+    }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div id="feedback-screen"></div>
+
+<div class="menu-inicio" id="menuInicio">
+    <h1 class="title">PROTOCOLO INSUMOS</h1>
+    <div class="subtitle">CLASIFICACIÓN DE RESIDUOS Y MATERIALES</div>
+    
+    <div class="instrucciones">
+        <p>¡Bienvenido/a al área de triaje! Clasifica correctamente el insumo médico. Usa las flechas o haz clic para enviarlo al contenedor correspondiente.</p>
+        
+        <div class="menu-controls">
+            <div class="control-box">
+                <div class="key">←</div>
+                <span>CONTENEDOR RPBI (PUNZOCORTANTES)</span>
+            </div>
+            <div class="control-box">
+                <div class="key">↓</div>
+                <span>BASURA COMÚN (RESIDUOS GENERALES)</span>
+            </div>
+            <div class="control-box">
+                <div class="key">→</div>
+                <span>MATERIAL DE CURACIÓN (LIMPIO)</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="play-btn" onclick="comenzarJuego()">Iniciar Jornada</button>
+</div>
+
+<div class="top-bar">
+    <button class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+    <div class="center-title">
+        <h1 class="title">PROTOCOLO INSUMOS</h1>
+        <span class="subtitle">CENTRAL DE ABASTO Y CUIDADOS</span>
+    </div>
+
+    <div class="hud">
+        <div class="hud-box">
+            <h3>TIEMPO</h3>
+            <p id="timer" style="color:#ff5c8a">60s</p>
+        </div>
+        <div class="hud-box">
+            <h3>EFICIENCIA</h3>
+            <p id="score">0</p>
+        </div>
+    </div>
+</div>
+
+<div id="game-area">
+    <div id="insumo-card">
+        <div id="insumo-card-label">INSUMO A CLASIFICAR</div>
+        <div id="insumo-name">Cargando...</div>
+    </div>
+
+    <img src="cpd.png" class="axolote-img" id="axolote-img">
+
+    <div id="containers-area">
+        <div class="waste-container container-rpbi" onclick="clasificarCorrectamente(0)">
+            <h3>CONTENEDOR RPBI</h3>
+            <p>Punzocortantes / Infecciosos</p>
+        </div>
+        <div class="waste-container container-comun" onclick="clasificarCorrectamente(1)">
+            <h3>BASURA COMÚN</h3>
+            <p>Residuos no contaminados</p>
+        </div>
+        <div class="waste-container container-curacion" onclick="clasificarCorrectamente(2)">
+            <h3>MATERIAL CURACIÓN</h3>
+            <p>Suministros Limpios</p>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <h1 id="finalTitle">¡TURNO CONCLUIDO!</h1>
+    <p style="font-size:1.5rem; margin-bottom:30px;">Eficiencia final: <span id="finalScore" style="color:#ffd600">0</span></p>
+    <button class="play-btn" onclick="location.reload()">Nuevo Turno</button>
+</div>
+
+<script>
+    const insumos = [
+        { name: "Agujas de jeringa usadas", type: 0 },
+        { name: "Hojas de bisturí", type: 0 },
+        { name: "Gazas empapadas en sangre", type: 0 },
+        { name: "Pañal desechable usado", type: 1 },
+        { name: "Cubrebocas usado", type: 1 },
+        { name: "Envolturas de papel", type: 1 },
+        { name: "Gazas limpias selladas", type: 2 },
+        { name: "Vendas nuevas", type: 2 },
+        { name: "Abatelenguas limpios", type: 2 },
+        { name: "Papel toalla usado", type: 1 },
+        { name: "Suero fisiológico (envase)", type: 2 }
+    ];
+
+    let tiempo = 60, score = 0, index = 0, juegoTerminado = false, juegoIniciado = false, intervalo;
+    const card = document.getElementById('insumo-card'), flash = document.getElementById('feedback-screen');
+
+    function comenzarJuego() {
+        document.getElementById('menuInicio').style.display = 'none';
+        juegoIniciado = true;
+        mostrarInsumo();
+        intervalo = setInterval(() => {
+            if(tiempo > 0) { tiempo--; document.getElementById('timer').innerText = tiempo + "s"; }
+            else { finalizar("¡TIEMPO AGOTADO!"); }
+        }, 1000);
+    }
+
+    function regresarAlMenu() { window.location.href = 'vista.html'; }
+
+    function mostrarInsumo() {
+        if(index >= insumos.length) { finalizar("¡EXCELENTE TRABAJO!"); return; }
+        card.style.opacity = "1";
+        card.style.transform = "translate(-50%, 0) scale(1)";
+        card.style.left = "50%";
+        document.getElementById('insumo-name').innerText = insumos[index].name;
+    }
+
+    function clasificarCorrectamente(tipo) {
+        if(!juegoIniciado || juegoTerminado) return;
+        if(tipo === insumos[index].type) { score += 15; flash.className = "correct-flash"; }
+        else { score -= 5; flash.className = "wrong-flash"; }
+        document.getElementById('score').innerText = score;
+        setTimeout(() => flash.className = "", 300);
+        card.style.opacity = "0";
+        index++;
+        setTimeout(mostrarInsumo, 250);
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if(!juegoIniciado || juegoTerminado) return;
+        if(e.key === 'ArrowLeft') clasificarCorrectamente(0);
+        if(e.key === 'ArrowDown') clasificarCorrectamente(1);
+        if(e.key === 'ArrowRight') clasificarCorrectamente(2);
+    });
+
+    function finalizar(t) {
+        juegoTerminado = true; clearInterval(intervalo);
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('finalTitle').innerText = t;
+        document.getElementById('finalScore').innerText = score;
+    }
+</script>
+</body>
+</html>

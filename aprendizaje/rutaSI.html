@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruta de Aprendizaje POO - TaskTUVCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* --- VARIABLES DE TEMA SISTEMAS --- */
+        :root {
+            --bg-center: #0d3347;
+            --bg-edge: #020b14;
+            --accent: #00e5ff;
+            --star-color: rgba(255,255,255,0.8);
+            --boss-color: #ffcc00; 
+            --success-color: #00e676;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; 
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-edge);
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- ELEMENTOS FLOTANTES UI --- */
+        #btn-volver {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 18px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+            text-shadow: 0 0 5px var(--accent);
+        }
+        #btn-volver:hover {
+            background: var(--accent);
+            color: black;
+            box-shadow: 0 0 20px var(--accent);
+            transform: scale(1.05);
+        }
+
+        #img-ajoinge {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 50;
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+            transition: transform 0.3s ease;
+        }
+        #img-ajoinge:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* --- FONDOS Y EFECTOS (LAGO DIGITAL) --- */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, var(--bg-center) 0%, var(--bg-edge) 65%);
+            z-index: -4;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(var(--star-color) 1px, transparent 1px);
+            background-size: 45px 45px;
+            opacity: .12;
+            z-index: -3;
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px; 
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.45; 
+            pointer-events: none;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 60%);
+            mask-image: linear-gradient(to right, transparent, black 60%);
+        }
+
+        .escenario {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========================================= */
+        /* 1. ZONA SUPERIOR E INFERIOR (RIBERAS)     */
+        /* ========================================= */
+        .pasto-superior, .pasto-inferior {
+            height: 25vh; 
+            background: rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        .pasto-superior {
+            border-bottom: 3px solid var(--accent);
+            border-bottom-left-radius: 50% 20px; 
+            border-bottom-right-radius: 50% 20px;
+        }
+
+        .pasto-inferior {
+            border-top: 3px solid var(--accent);
+            border-top-left-radius: 50% 20px;
+            border-top-right-radius: 50% 20px;
+            height: 25vh;
+            margin-top: auto;
+        }
+
+        .titulo-ruta {
+            margin-top: 30px;
+            color: white; 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2vw;
+            text-shadow: 0 0 10px white, 0 0 20px var(--accent);
+            letter-spacing: 2px;
+            z-index: 10;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .flora {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.8;
+            filter: grayscale(1) sepia(1) hue-rotate(130deg) saturate(5) brightness(1.2) drop-shadow(0 0 10px var(--accent));
+            z-index: 10;
+        }
+
+        .ondas {
+            position: absolute;
+            width: 100%;
+            height: 25px;
+            background: radial-gradient(circle at 50% 0, transparent 20%, rgba(0, 229, 255, 0.5) 21%, transparent 22%);
+            background-size: 50px 25px;
+            z-index: 1;
+        }
+        .ondas-arriba { bottom: -24px; animation: wave-scroll-right 3s infinite linear; }
+        .ondas-abajo { top: -24px; transform: scaleY(-1); animation: wave-scroll-left 3s infinite linear; }
+
+        @keyframes wave-scroll-right { 0% { background-position-x: 0; } 100% { background-position-x: 50px; } }
+        @keyframes wave-scroll-left { 0% { background-position-x: 0; } 100% { background-position-x: -50px; } }
+
+        /* ========================================= */
+        /* 2. ZONA CENTRAL (LAGO Y NENÚFARES)        */
+        /* ========================================= */
+        .zona-agua {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-evenly; 
+            align-items: center;
+            padding: 0 5vw;
+            overflow: hidden; 
+        }
+
+        .linea-conexion {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            width: 90%;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, var(--accent) 0px, var(--accent) 15px, transparent 15px, transparent 30px);
+            z-index: 1;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px var(--accent);
+            opacity: 0.5;
+            animation: cyber-flow 1.5s infinite linear;
+        }
+        @keyframes cyber-flow { 0% { background-position-x: 0; } 100% { background-position-x: 30px; } }
+
+        .binario-flotante {
+            position: absolute;
+            color: var(--accent);
+            font-family: 'Press Start 2P', monospace;
+            white-space: nowrap;
+            animation: fluir-binario linear infinite;
+            pointer-events: none;
+            z-index: 0; 
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        @keyframes fluir-binario { 0% { transform: translateX(-100vw); } 100% { transform: translateX(100vw); } }
+
+        .nenufar {
+            width: clamp(90px, 12vw, 140px);
+            height: clamp(90px, 12vw, 140px);
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%; 
+            border: 3px solid #555;
+            cursor: pointer;
+            z-index: 2;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .nenufar::after {
+            content: '🪷'; 
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 1.8rem;
+            filter: grayscale(1) sepia(1) hue-rotate(130deg) saturate(5) drop-shadow(0 0 8px var(--accent));
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .nenufar:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent), inset 0 0 15px rgba(0, 229, 255, 0.4);
+            background: rgba(0, 229, 255, 0.15);
+            transform: scale(1.15) !important;
+        }
+        .nenufar:hover::after { transform: scale(1.2) rotate(10deg); }
+
+        /* ESTADOS COMPLETADOS */
+        .nenufar.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 15px var(--success-color), inset 0 0 15px rgba(0, 230, 118, 0.3) !important;
+            background: rgba(0, 230, 118, 0.1);
+        }
+        .nenufar.completado span::after {
+            content: ' ✔';
+            color: var(--success-color);
+            text-shadow: 0 0 5px var(--success-color);
+            font-weight: bold;
+        }
+
+        .nenufar.prueba-final {
+            border-color: var(--boss-color);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+        }
+        .nenufar.prueba-final::after { filter: grayscale(1) sepia(1) hue-rotate(20deg) saturate(5) drop-shadow(0 0 8px var(--boss-color)); }
+        .nenufar.prueba-final:hover {
+            box-shadow: 0 0 20px var(--boss-color), inset 0 0 15px rgba(255, 204, 0, 0.4);
+            background: rgba(255, 204, 0, 0.15);
+        }
+        .nenufar.prueba-final.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 25px var(--success-color), inset 0 0 15px rgba(0, 230, 118, 0.5) !important;
+        }
+
+        .nenufar span {
+            color: #ccc;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: clamp(0.75rem, 1.2vw, 1rem);
+            line-height: 1.2;
+            z-index: 3;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 10, 15, 0.85);
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .nenufar:hover span {
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            transform: scale(1.1);
+        }
+        .nenufar.prueba-final:hover span {
+            border-color: var(--boss-color);
+            box-shadow: 0 0 10px var(--boss-color);
+        }
+
+        .nenufar:nth-child(odd) { transform: translateY(-30px); }
+        .nenufar:nth-child(even) { transform: translateY(30px); }
+
+        @keyframes flotar { 0%, 100% { margin-top: 0; } 50% { margin-top: -15px; } }
+        
+        .nenufar:nth-child(1) { animation: flotar 4s infinite ease-in-out; }
+        .nenufar:nth-child(2) { animation: flotar 3.5s infinite ease-in-out 0.5s; }
+        .nenufar:nth-child(3) { animation: flotar 4.2s infinite ease-in-out 1s; }
+        .nenufar:nth-child(4) { animation: flotar 3.8s infinite ease-in-out 0.2s; }
+        .nenufar:nth-child(5) { animation: flotar 4.5s infinite ease-in-out 0.8s; }
+        .nenufar:nth-child(6) { animation: flotar 3.9s infinite ease-in-out 1.2s; }
+
+        /* ========================================= */
+        /* 4. MODALES                                */
+        /* ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(13, 51, 71, 0.9); border: 3px solid var(--accent); border-radius: 20px;
+            width: 80%; max-width: 800px; max-height: 80vh; padding: 30px;
+            color: white; overflow-y: auto;
+            position: relative; box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 20px rgba(0, 229, 255, 0.3);
+        }
+
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #020b14; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; font-size: 25px;
+            color: var(--accent); cursor: pointer; font-family: 'Press Start 2P', cursive;
+            transition: transform 0.2s, text-shadow 0.2s;
+        }
+        .modal-close:hover { 
+            transform: scale(1.2); 
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .modal-title {
+            font-family: 'Press Start 2P', cursive; color: var(--accent); text-align: center;
+            font-size: 1.5rem; margin-top: 10px; margin-bottom: 25px; line-height: 1.5;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .code-block {
+            background: #020b14; padding: 15px; border-radius: 10px;
+            border-left: 5px solid var(--accent); font-family: monospace;
+            overflow-x: auto; color: #aeea00; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .btn-accion {
+            background: rgba(0,0,0,0.45); color: white; 
+            border: 2px solid var(--accent); padding: 15px 20px;
+            font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.1rem;
+            border-radius: 12px; cursor: pointer; 
+            margin-top: 15px; display: block; width: 100%;
+            transition: all 0.3s ease; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .btn-accion:hover { 
+            background: var(--accent); color: #000; 
+            box-shadow: 0 0 15px var(--accent); transform: scale(1.02);
+        }
+
+        .btn-completar {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            margin-top: 25px;
+        }
+        .btn-completar:hover {
+            background: var(--success-color);
+            color: black;
+            box-shadow: 0 0 15px var(--success-color);
+        }
+
+        .quiz-question { margin-bottom: 20px; border-bottom: 1px dashed var(--accent); padding-bottom: 10px; }
+        .quiz-question p { font-weight: 600; font-size: 1.1rem; color: var(--accent); }
+        .quiz-question label { cursor: pointer; display: block; margin-bottom: 5px; }
+        
+        .match-grid { display: flex; justify-content: space-between; gap: 20px; margin-top: 20px; }
+        .match-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .match-item {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; text-align: center;
+            cursor: pointer; border: 2px solid #555; transition: 0.3s;
+            user-select: none; font-weight: 500;
+        }
+        .match-item:hover { border-color: var(--accent); }
+        .match-item.selected { border-color: var(--accent); background: rgba(0, 229, 255, 0.2); box-shadow: 0 0 10px var(--accent); }
+        .match-item.matched { background: #00c853; border-color: #00e676; color: black; cursor: default; opacity: 0.8; }
+        .match-item.error { background: #d50000; border-color: #ff1744; }
+
+    </style>
+</head>
+<body>
+
+    <button id="btn-volver" onclick="window.location.href='vista2.html'">⬅ VOLVER</button>
+    
+    <img id="img-ajoinge" src="ajoinge.png" alt="Ajoinge">
+
+    <div class="stars"></div>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="escenario">
+        <div class="pasto-superior">
+            <h1 class="titulo-ruta">RUTA DE APRENDIZAJE<br>POO</h1>
+            <div class="flora" style="bottom: 10px; left: 10%;">🌿</div>
+            <div class="flora" style="bottom: 25px; left: 20%;">🌳</div>
+            <div class="flora" style="bottom: 5px; right: 15%;">🌾</div>
+            <div class="flora" style="bottom: 20px; right: 5%;">🌴</div>
+            <div class="ondas ondas-arriba"></div>
+        </div>
+
+        <div class="zona-agua">
+            <div class="linea-conexion"></div>
+            
+            <button id="nenufar-lectura" class="nenufar" onclick="abrirModal('modal-lectura')">
+                <span>Lectura</span>
+            </button>
+            <button id="nenufar-ejemplos" class="nenufar" onclick="abrirModal('modal-ejemplos')">
+                <span>Ejemplos de uso</span>
+            </button>
+            <button id="nenufar-cuestionario" class="nenufar" onclick="abrirModal('modal-cuestionario')">
+                <span>Cuestionario</span>
+            </button>
+            <button id="nenufar-conectar" class="nenufar" onclick="iniciarConectarConceptos()">
+                <span>Conectar conceptos</span>
+            </button>
+            <button id="nenufar-juego" class="nenufar" onclick="juegoRapido()">
+                <span>Juego rápido</span>
+            </button>
+            <button id="nenufar-prueba" class="nenufar prueba-final" onclick="abrirModal('modal-prueba')">
+                <span style="color: var(--boss-color);">Prueba final</span>
+            </button>
+        </div>
+
+        <div class="pasto-inferior">
+            <div class="ondas ondas-abajo"></div>
+            <div class="flora" style="top: 10px; left: 5%;">🌾</div>
+            <div class="flora" style="top: 25px; left: 25%;">🌿</div>
+            <div class="flora" style="top: 5px; right: 20%;">🌴</div>
+            <div class="flora" style="top: 20px; right: 8%;">🌳</div>
+        </div>
+    </div>
+
+    <div id="modal-lectura" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-lectura')">X</span>
+            <h2 class="modal-title">¿Qué es la POO?</h2>
+            <p>La <strong>Programación Orientada a Objetos (POO)</strong> es un paradigma de programación que utiliza "objetos" para diseñar aplicaciones. Se basa en 4 pilares fundamentales:</p>
+            <ul style="line-height: 1.6; margin-top: 15px;">
+                <li><strong style="color:var(--accent);">Clases:</strong> Son las "plantillas" o moldes. Definen las características (atributos) y acciones (métodos) que tendrán los objetos.</li>
+                <li><strong style="color:var(--accent);">Objetos:</strong> Son instancias (creaciones reales) de una clase. </li>
+                <li><strong style="color:var(--accent);">Encapsulamiento:</strong> Oculta los datos internos de un objeto para protegerlos, permitiendo modificarlos solo mediante métodos seguros (getters/setters).</li>
+                <li><strong style="color:var(--accent);">Herencia:</strong> Permite crear nuevas clases basadas en clases existentes, reutilizando y extendiendo su código.</li>
+                <li><strong style="color:var(--accent);">Polimorfismo:</strong> Permite que un mismo método funcione de diferentes maneras dependiendo del objeto que lo invoque.</li>
+            </ul>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('nenufar-lectura', 'modal-lectura')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <div id="modal-ejemplos" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-ejemplos')">X</span>
+            <h2 class="modal-title">Ejemplos de Uso</h2>
+            <p>Imagina que estás modelando datos de la vida real. Una clase es la plantilla <code>Perro</code>, y un objeto puede ser <code>Miki</code>.</p>
+            <div class="code-block">
+<pre><code>class Perro {
+    String nombre;
+    String raza;
+
+    // Método constructor
+    public Perro(String nombre, String raza) {
+        this.nombre = nombre;
+        this.raza = raza;
+    }
+
+    public void ladrar() {
+        System.out.println("¡Guau! Soy " + nombre);
+    }
+}
+
+// Instanciando un Objeto usando 'new'
+Perro miMascota = new Perro("Miki", "Husky");
+miMascota.ladrar(); 
+</code></pre>
+            </div>
+            <p style="margin-top: 15px;">Otro ejemplo: En tu app <strong>TaskTUVCH</strong>, puedes tener una clase <code>Tarea</code> de la que instancies cientos de tareas distintas, cada una con su propio título y estado.</p>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('nenufar-ejemplos', 'modal-ejemplos')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <div id="modal-cuestionario" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-cuestionario')">X</span>
+            <h2 class="modal-title">Cuestionario Básico</h2>
+            <p style="margin-bottom: 20px;">Responde estas preguntas basándote en lo que leíste en la sección "Lectura".</p>
+            <form id="form-cuestionario">
+                <div class="quiz-question">
+                    <p>1. Según la lectura, ¿qué es una "Clase" en POO?</p>
+                    <label><input type="radio" name="q1" value="a"> a) Una instancia o creación real.</label>
+                    <label><input type="radio" name="q1" value="b"> b) Una "plantilla" o molde que define características y acciones.</label>
+                    <label><input type="radio" name="q1" value="c"> c) Una forma de ocultar datos internos.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>2. ¿Qué pilar de la POO permite que un mismo método funcione de diferentes maneras?</p>
+                    <label><input type="radio" name="q2" value="a"> a) Herencia</label>
+                    <label><input type="radio" name="q2" value="b"> b) Encapsulamiento</label>
+                    <label><input type="radio" name="q2" value="c"> c) Polimorfismo</label>
+                </div>
+                <div class="quiz-question">
+                    <p>3. ¿Cómo define el texto a un "Objeto"?</p>
+                    <label><input type="radio" name="q3" value="a"> a) Como una instancia (creación real) de una clase.</label>
+                    <label><input type="radio" name="q3" value="b"> b) Como un método seguro.</label>
+                    <label><input type="radio" name="q3" value="c"> c) Como una característica (atributo).</label>
+                </div>
+                <div class="quiz-question">
+                    <p>4. ¿Qué herramientas específicas menciona la lectura para modificar datos protegidos por el Encapsulamiento?</p>
+                    <label><input type="radio" name="q4" value="a"> a) Atributos públicos.</label>
+                    <label><input type="radio" name="q4" value="b"> b) Métodos seguros (getters/setters).</label>
+                    <label><input type="radio" name="q4" value="c"> c) Plantillas de clases.</label>
+                </div>
+                <button type="button" class="btn-accion" onclick="evaluarCuestionario('form-cuestionario', 'q', ['b', 'c', 'a', 'b'], 'nenufar-cuestionario')">EVALUAR RESPUESTAS</button>
+            </form>
+            <p id="res-cuestionario" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-conectar" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-conectar')">X</span>
+            <h2 class="modal-title">Conectar Conceptos</h2>
+            <p style="text-align:center;">Haz clic en un concepto de la izquierda y luego en su definición a la derecha.</p>
+            <div class="match-grid">
+                <div class="match-col" id="col-conceptos"></div>
+                <div class="match-col" id="col-definiciones"></div>
+            </div>
+            <p id="res-conectar" style="text-align:center; font-weight:bold; margin-top:20px; color:var(--accent); font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-prueba" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--boss-color);">
+            <span class="modal-close" style="color: var(--boss-color);" onclick="cerrarModal('modal-prueba')">X</span>
+            <h2 class="modal-title" style="color: var(--boss-color);">Prueba Final</h2>
+            <p style="margin-bottom: 20px;">Aplica todo lo aprendido en la Lectura y en el bloque de Código de Ejemplo.</p>
+            <form id="form-prueba">
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">1. De acuerdo a la lectura, la Herencia sirve para:</p>
+                    <label><input type="radio" name="p1" value="a"> a) Proteger los datos mediante getters/setters.</label>
+                    <label><input type="radio" name="p1" value="b"> b) Crear nuevas clases basadas en clases existentes, reutilizando código.</label>
+                    <label><input type="radio" name="p1" value="c"> c) Hacer que un objeto funcione de diferentes maneras.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">2. Observando el código de ejemplo, ¿qué elementos representan los "atributos" de la clase Perro?</p>
+                    <label><input type="radio" name="p2" value="a"> a) nombre y raza</label>
+                    <label><input type="radio" name="p2" value="b"> b) ladrar()</label>
+                    <label><input type="radio" name="p2" value="c"> c) miMascota</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">3. En el contexto de la aplicación, ¿qué relación tienen "Tarea" y las tareas que creas?</p>
+                    <label><input type="radio" name="p3" value="a"> a) Tarea es un objeto y las tareas creadas son clases.</label>
+                    <label><input type="radio" name="p3" value="b"> b) Tarea es la clase (plantilla) y las tareas creadas son los objetos (instancias).</label>
+                    <label><input type="radio" name="p3" value="c"> c) Ambas son métodos.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">4. Según el texto, las acciones que tendrá un objeto se definen en la plantilla a través de:</p>
+                    <label><input type="radio" name="p4" value="a"> a) Getters</label>
+                    <label><input type="radio" name="p4" value="b"> b) Atributos</label>
+                    <label><input type="radio" name="p4" value="c"> c) Métodos</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">5. En el código de ejemplo de Java, ¿qué palabra clave se utiliza para instanciar (crear) un nuevo objeto?</p>
+                    <label><input type="radio" name="p5" value="a"> a) public</label>
+                    <label><input type="radio" name="p5" value="b"> b) class</label>
+                    <label><input type="radio" name="p5" value="c"> c) new</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">6. El objetivo principal de la POO es utilizar "__________" para diseñar aplicaciones.</p>
+                    <label><input type="radio" name="p6" value="a"> a) bases de datos</label>
+                    <label><input type="radio" name="p6" value="b"> b) objetos</label>
+                    <label><input type="radio" name="p6" value="c"> c) funciones matemáticas</label>
+                </div>
+                <button type="button" class="btn-accion" style="border-color: var(--boss-color);" onmouseover="this.style.boxShadow='0 0 15px var(--boss-color)'; this.style.backgroundColor='var(--boss-color)'; this.style.color='#000';" onmouseout="this.style.boxShadow='0 0 10px rgba(0,0,0,0.5)'; this.style.backgroundColor='rgba(0,0,0,0.45)'; this.style.color='white';" onclick="evaluarCuestionario('form-prueba', 'p', ['b', 'a', 'b', 'c', 'c', 'b'], 'nenufar-prueba', true)">FINALIZAR PRUEBA</button>
+            </form>
+            <p id="res-prueba" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-victoria" class="modal-overlay">
+        <div class="modal-content" style="text-align: center; border-color: var(--success-color);">
+            <span class="modal-close" style="color: var(--success-color);" onclick="cerrarModal('modal-victoria')">X</span>
+            <h2 class="modal-title" style="color: var(--success-color); font-size: 2rem;">¡SISTEMA SUPERADO!</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; margin-top: 20px;">
+                Felicidades por completar este tema, ahora tiene una buena idea de lo que es poo.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DE MODALES Y JUEGOS ---
+        function abrirModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function marcarCompletado(nenufarId, modalId) {
+            document.getElementById(nenufarId).classList.add('completado');
+            if(modalId) cerrarModal(modalId);
+        }
+
+        function juegoRapido() {
+            // Se marca el minijuego como completado justo antes de redireccionar
+            marcarCompletado('nenufar-juego', null);
+            const juegos = ['juego1.html', 'juego2.html', 'juego3.html'];
+            const juegoAleatorio = juegos[Math.floor(Math.random() * juegos.length)];
+            alert("Redirigiendo a: " + juegoAleatorio);
+            window.location.href = juegoAleatorio;
+        }
+
+        function evaluarCuestionario(formId, prefix, correctas, nenufarId, esPruebaFinal = false) {
+            const form = document.getElementById(formId);
+            let score = 0;
+            let respondidas = 0;
+
+            for (let i = 0; i < correctas.length; i++) {
+                const inputName = prefix + (i + 1);
+                const selected = form.querySelector(`input[name="${inputName}"]:checked`);
+
+                if (selected) {
+                    respondidas++;
+                    if (selected.value === correctas[i]) {
+                        score++;
+                    }
+                }
+            }
+
+            const resTexto = (formId === 'form-cuestionario') ? 'res-cuestionario' : 'res-prueba';
+            const contenedorRespuesta = document.getElementById(resTexto);
+
+            if (respondidas < correctas.length) {
+                contenedorRespuesta.style.color = '#ffcc00';
+                contenedorRespuesta.innerText = "Por favor, responde todas las preguntas para continuar.";
+            } else {
+                if (score === correctas.length) {
+                    // Si todo está correcto, se marca como completado
+                    document.getElementById(nenufarId).classList.add('completado');
+                    
+                    if(esPruebaFinal) {
+                        cerrarModal('modal-prueba');
+                        abrirModal('modal-victoria');
+                        lanzarConfeti();
+                    } else {
+                        contenedorRespuesta.style.color = '#00e676';
+                        contenedorRespuesta.innerText = "¡Excelente trabajo! Módulo completado.";
+                    }
+                } else {
+                    contenedorRespuesta.style.color = '#ff1744';
+                    contenedorRespuesta.innerText = `Obtuviste ${score} de ${correctas.length} aciertos. Repasa la lectura e inténtalo de nuevo.`;
+                }
+            }
+        }
+
+        function lanzarConfeti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+
+            function randomInRange(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              var particleCount = 50 * (timeLeft / duration);
+              // since particles fall down, start a bit higher than random
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // --- 2. JUEGO CONECTAR CONCEPTOS ---
+        const pares = [
+            { id: 1, c: "Objeto", d: "Instancia (creación real) de una clase." },
+            { id: 2, c: "Clase", d: "Plantilla o molde que define atributos y métodos." },
+            { id: 3, c: "Atributo", d: "Características internas (ej. nombre, raza)." },
+            { id: 4, c: "Método", d: "Acciones seguras que el objeto puede realizar (ej. ladrar)." }
+        ];
+
+        let seleccionIzquierda = null;
+        let aciertos = 0;
+
+        function iniciarConectarConceptos() {
+            abrirModal('modal-conectar');
+            aciertos = 0;
+            seleccionIzquierda = null;
+            document.getElementById('res-conectar').innerText = "";
+            
+            const colConceptos = document.getElementById('col-conceptos');
+            const colDefiniciones = document.getElementById('col-definiciones');
+            colConceptos.innerHTML = '';
+            colDefiniciones.innerHTML = '';
+
+            const definicionesDesordenadas = [...pares].sort(() => Math.random() - 0.5);
+
+            pares.forEach(item => {
+                let divC = document.createElement('div');
+                divC.className = 'match-item concepto';
+                divC.innerText = item.c;
+                divC.dataset.id = item.id;
+                divC.onclick = () => seleccionarConcepto(divC);
+                colConceptos.appendChild(divC);
+            });
+
+            definicionesDesordenadas.forEach(item => {
+                let divD = document.createElement('div');
+                divD.className = 'match-item definicion';
+                divD.innerText = item.d;
+                divD.dataset.id = item.id;
+                divD.onclick = () => comprobarPareja(divD);
+                colDefiniciones.appendChild(divD);
+            });
+        }
+
+        function seleccionarConcepto(elemento) {
+            if (elemento.classList.contains('matched')) return;
+            document.querySelectorAll('.concepto').forEach(el => el.classList.remove('selected'));
+            elemento.classList.add('selected');
+            seleccionIzquierda = elemento;
+        }
+
+        function comprobarPareja(definicion) {
+            if (definicion.classList.contains('matched') || !seleccionIzquierda) return;
+
+            if (seleccionIzquierda.dataset.id === definicion.dataset.id) {
+                seleccionIzquierda.classList.remove('selected');
+                seleccionIzquierda.classList.add('matched');
+                definicion.classList.add('matched');
+                seleccionIzquierda = null;
+                aciertos++;
+
+                if (aciertos === pares.length) {
+                    document.getElementById('res-conectar').innerText = "¡SISTEMA DESBLOQUEADO! Conceptos conectados.";
+                    marcarCompletado('nenufar-conectar', null); // Se marca automático
+                }
+            } else {
+                definicion.classList.add('error');
+                setTimeout(() => definicion.classList.remove('error'), 500);
+            }
+        }
+
+        // --- 3. EFECTO MATRIX BINARIO VERTICAL (DERECHA) ---
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 350; 
+        canvas.height = window.innerHeight;
+
+        const binaryChars = '01'; 
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = Math.random() * canvas.height / fontSize; 
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); 
+            ctx.font = fontSize + 'px "Press Start 2P", monospace'; 
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = binaryChars.charAt(Math.floor(Math.random() * binaryChars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.95) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        window.addEventListener('resize', () => {
+            canvas.height = window.innerHeight;
+        });
+
+        // --- 4. EFECTO RÍO BINARIO HORIZONTAL (LAGO) ---
+        function crearRioBinario() {
+            const zonaAgua = document.querySelector('.zona-agua');
+            const numCorrientes = 8; 
+
+            for (let i = 0; i < numCorrientes; i++) {
+                let stream = document.createElement('div');
+                stream.className = 'binario-flotante';
+                
+                let binString = '';
+                for (let j = 0; j < 30; j++) {
+                    binString += Math.random() > 0.5 ? '1 ' : '0 ';
+                }
+                stream.innerText = binString;
+                
+                stream.style.top = (10 + Math.random() * 80) + '%';
+                stream.style.opacity = (0.1 + Math.random() * 0.3).toString();
+                stream.style.fontSize = (0.7 + Math.random() * 0.8) + 'rem';
+                
+                const duracion = 15 + Math.random() * 25;
+                stream.style.animationDuration = duracion + 's';
+                
+                stream.style.animationDelay = '-' + (Math.random() * 20) + 's';
+                
+                zonaAgua.appendChild(stream);
+            }
+        }
+
+        window.onload = crearRioBinario;
+
+    </script>
+</body>
+</html>

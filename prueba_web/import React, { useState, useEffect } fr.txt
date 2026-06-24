@@ -1,0 +1,650 @@
+import React, { useState, useEffect } from 'react';
+import { Users, LogOut, Plus, Edit2, Trash2, Shield, AlertCircle, Search, Plane, Lock, FileText, Database, Activity, ShoppingCart, CheckCircle } from 'lucide-react';
+
+// --- SIMULACIÓN DE SEGURIDAD (CRIPTOGRAFÍA BÁSICA PARA DEMOSTRACIÓN) ---
+const hashData = (str) => btoa(str).split('').reverse().join('').substring(0, 15);
+const encryptData = (str) => `ENC_${btoa(str)}`;
+const decryptData = (str) => str.startsWith('ENC_') ? atob(str.replace('ENC_', '')) : str;
+
+const ROLES = {
+  ADMIN: 'Admin',
+  VENDEDOR: 'Vendedor',
+  AUDITOR: 'Auditor'
+};
+
+const MOCK_USERS = {
+  'admin': { username: 'admin', passwordHash: hashData('123'), role: ROLES.ADMIN },
+  'vendedor': { username: 'vendedor', passwordHash: hashData('123'), role: ROLES.VENDEDOR },
+  'auditor': { username: 'auditor', passwordHash: hashData('123'), role: ROLES.AUDITOR },
+};
+
+export default function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  if (!currentUser) {
+    return <LoginScreen onLogin={setCurrentUser} />;
+  }
+
+  return <Dashboard user={currentUser} onLogout={() => setCurrentUser(null)} />;
+}
+
+// --- PANTALLA DE LOGIN CON CAPTCHA Y PRIVACIDAD ---
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [captcha, setCaptcha] = useState({ a: 0, b: 0, input: '' });
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  const generateCaptcha = () => {
+    setCaptcha({ a: Math.floor(Math.random() * 10) + 1, b: Math.floor(Math.random() * 10) + 1, input: '' });
+  };
+
+  useEffect(() => { generateCaptcha(); }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!privacyAccepted) {
+      setError('Debes aceptar el Aviso de Privacidad para continuar.');
+      return;
+    }
+
+    if (parseInt(captcha.input) !== (captcha.a + captcha.b)) {
+      setError('El CAPTCHA es incorrecto. Por favor, intenta de nuevo.');
+      generateCaptcha();
+      return;
+    }
+
+    if (!username || !password) {
+      setError('Por favor, ingresa usuario y contraseña.');
+      return;
+    }
+    
+    const user = MOCK_USERS[username.toLowerCase()];
+    if (user && user.passwordHash === hashData(password)) {
+      onLogin(user);
+    } else {
+      setError('Credenciales incorrectas o usuario no encontrado.');
+      generateCaptcha();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8 relative overflow-hidden">
+        <div className="flex flex-col items-center mb-6">
+          <div className="bg-blue-600 p-3 rounded-full text-white mb-4 shadow-md">
+            <Lock size={32} />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">AeroCRM Seguro</h1>
+          <p className="text-slate-500 text-sm mt-1 text-center">Acceso corporativo</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-start gap-2 mb-6 text-sm border border-red-100">
+            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
+            <input 
+              type="text" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)}
+              list="usuarios-sugeridos"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              placeholder="Escribe para buscar (ej. ad...)" 
+            />
+            <datalist id="usuarios-sugeridos">
+              <option value="admin" />
+              <option value="vendedor" />
+              <option value="auditor" />
+            </datalist>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+            <input 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              placeholder="••••••••" 
+            />
+          </div>
+
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-700">CAPTCHA: ¿Cuánto es {captcha.a} + {captcha.b}?</span>
+            <input 
+              type="number" 
+              value={captcha.input} 
+              onChange={(e) => setCaptcha({ ...captcha, input: e.target.value })}
+              className="w-20 px-2 py-1 border border-slate-300 rounded text-center outline-none focus:ring-2 focus:ring-blue-500" 
+            />
+          </div>
+
+          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2">
+             <div className="flex items-start gap-2">
+                <input 
+                  type="checkbox" 
+                  id="privacy" 
+                  checked={privacyAccepted} 
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  className="mt-1 shrink-0" 
+                />
+                <label htmlFor="privacy" className="text-xs text-slate-600">
+                  He leído y acepto el tratamiento de mis datos personales según el Aviso de Privacidad vigente.
+                </label>
+             </div>
+             <p className="text-[10px] text-slate-500 ml-5">
+               Tus datos se usan exclusivamente para la gestión operativa y de seguridad. Puedes ejercer tus derechos ARCO contactando a <b>privacidad@aerocrm.com</b>. 
+               <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-600 font-medium ml-1 hover:underline">Leer Aviso Integral</button>.
+             </p>
+          </div>
+
+          <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-md">
+            Ingresar al Sistema
+          </button>
+        </form>
+      </div>
+
+      {showPrivacyModal && <PrivacyModal onClose={() => setShowPrivacyModal(false)} />}
+    </div>
+  );
+}
+
+function PrivacyModal({ onClose }) {
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><FileText size={20}/> Aviso de Privacidad Integral</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">✕</button>
+        </div>
+        <div className="p-6 overflow-y-auto text-sm text-slate-600 space-y-4">
+          <p><b>1. Identidad y Domicilio del Responsable:</b> AeroCRM S.A. de C.V., con domicilio en Terminal 1, Ciudad de México, es responsable del uso y protección de sus datos personales.</p>
+          <p><b>2. Datos Recabados:</b> Recabamos datos de identificación (nombre, documento de identidad cifrado), contacto (correo, teléfono) y credenciales de acceso protegidas mediante algoritmos de hash unidireccional.</p>
+          <p><b>3. Finalidad del Tratamiento:</b> Sus datos son utilizados para verificar su identidad, proveer acceso al sistema CRM, registrar auditorías de seguridad y cumplir con normativas de aviación civil.</p>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h3 className="font-bold text-blue-800 mb-2">4. Mecanismos para Ejercer Derechos ARCO</h3>
+            <p className="mb-2">Usted tiene derecho a <b>Acceder</b>, <b>Rectificar</b>, <b>Cancelar</b> u <b>Oponerse</b> (ARCO) al tratamiento de sus datos. Para ejercerlos:</p>
+            <ol className="list-decimal pl-5 space-y-1 text-blue-900">
+              <li>Envíe un correo a <b>privacidad@aerocrm.com</b> con el asunto "Solicitud ARCO".</li>
+              <li>Adjunte una copia de su identificación oficial.</li>
+              <li>Describa claramente qué derecho desea ejercer y sobre qué datos.</li>
+              <li>Nuestro Departamento de Privacidad procesará su solicitud a través del Módulo ARCO del sistema en un plazo máximo de 20 días hábiles.</li>
+            </ol>
+          </div>
+          <p><b>5. Modificaciones:</b> Cualquier cambio a este aviso será notificado mediante la pantalla principal del sistema.</p>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+          <button onClick={onClose} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">Entendido</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- DASHBOARD PRINCIPAL Y MÓDULOS ---
+function Dashboard({ user, onLogout }) {
+  const [activeTab, setActiveTab] = useState('clientes');
+  
+  // BD Simulada: Clientes
+  const [clientes, setClientes] = useState([
+    { id_pasajero: 1, nombre: 'Juan', apellido: 'Pérez', documento_identidad_enc: encryptData('A1234567'), correo_electronico: 'juan@email.com', telefono: '555-0101', creado_por: 'admin', fecha_creacion: '2023-10-01 08:30:00' },
+    { id_pasajero: 2, nombre: 'Ana', apellido: 'Gómez', documento_identidad_enc: encryptData('B9876543'), correo_electronico: 'ana@email.com', telefono: '555-0202', creado_por: 'vendedor', fecha_creacion: '2023-10-02 09:15:00' },
+  ]);
+
+  // BD Simulada: Ventas
+  const [ventas, setVentas] = useState([
+    { id_venta: 101, id_pasajero: 1, vuelo: 'MX-404', clase: 'Ejecutiva', monto: 4500.00, fecha: '2023-10-03 10:00:00', vendedor: 'vendedor' }
+  ]);
+
+  // BD Simulada: Logs de Auditoría
+  const [logs, setLogs] = useState([
+    { id_log: 6, usuario: 'admin', rol: 'Admin', accion: 'SISTEMA INICIADO', modulo: 'CORE', ip: '192.168.1.100', fecha: '2023-10-01 00:00:00' },
+    { id_log: 5, usuario: 'vendedor', rol: 'Vendedor', accion: 'INICIÓ SESIÓN', modulo: 'AUTH', ip: '10.0.1.45', fecha: '2023-10-05 08:00:00' },
+    { id_log: 4, usuario: 'vendedor', rol: 'Vendedor', accion: 'REGISTRÓ NUEVO CLIENTE: Ana Gómez', modulo: 'CLIENTES', ip: '10.0.1.45', fecha: '2023-10-05 09:15:00' },
+    { id_log: 3, usuario: 'vendedor', rol: 'Vendedor', accion: 'REGISTRÓ VENTA VUELO MX-404 PARA CLIENTE 1', modulo: 'VENTAS', ip: '10.0.1.45', fecha: '2023-10-05 14:20:00' },
+    { id_log: 2, usuario: 'auditor', rol: 'Auditor', accion: 'CONSULTÓ BASE DE DATOS', modulo: 'DB', ip: '10.0.5.12', fecha: '2023-10-06 10:15:00' },
+    { id_log: 1, usuario: 'admin', rol: 'Admin', accion: 'ACTUALIZÓ CLIENTE ID: 1', modulo: 'CLIENTES', ip: '192.168.1.100', fecha: '2023-10-06 10:30:00' },
+  ]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isVentaModalOpen, setIsVentaModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+
+  // Permisos (RBAC)
+  const canCreate = user.role === ROLES.ADMIN || user.role === ROLES.VENDEDOR;
+  const canEdit = user.role === ROLES.ADMIN || user.role === ROLES.VENDEDOR;
+  const canDelete = user.role === ROLES.ADMIN;
+  const canViewAdvanced = user.role === ROLES.ADMIN || user.role === ROLES.AUDITOR;
+
+  const registrarLog = (accion, modulo) => {
+    const ipSimulada = `10.0.0.${Math.floor(Math.random() * 255)}`;
+    const nuevoLog = {
+      id_log: Date.now(),
+      usuario: user.username,
+      rol: user.role,
+      accion,
+      modulo,
+      ip: ipSimulada,
+      fecha: new Date().toLocaleString()
+    };
+    setLogs(prev => [nuevoLog, ...prev]);
+  };
+
+  // Tracking automático al iniciar sesión
+  useEffect(() => {
+    registrarLog('INICIÓ SESIÓN EXITOSAMENTE', 'AUTH');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveClient = (clientData) => {
+    if (editingClient) {
+      setClientes(clientes.map(c => c.id_pasajero === editingClient.id_pasajero ? 
+        { ...c, ...clientData, documento_identidad_enc: encryptData(clientData.documento_identidad) } : c));
+      registrarLog(`ACTUALIZÓ CLIENTE ID: ${editingClient.id_pasajero}`, 'CLIENTES');
+    } else {
+      const newId = Date.now();
+      setClientes([...clientes, { 
+        ...clientData, 
+        id_pasajero: newId, 
+        documento_identidad_enc: encryptData(clientData.documento_identidad),
+        creado_por: user.username, 
+        fecha_creacion: new Date().toLocaleString() 
+      }]);
+      registrarLog(`REGISTRÓ NUEVO CLIENTE: ${clientData.nombre}`, 'CLIENTES');
+    }
+    setIsClientModalOpen(false);
+  };
+
+  const handleSaveVenta = (ventaData) => {
+    const newVenta = {
+      ...ventaData,
+      id_venta: Date.now(),
+      fecha: new Date().toLocaleString(),
+      vendedor: user.username
+    };
+    setVentas([...ventas, newVenta]);
+    registrarLog(`REGISTRÓ VENTA VUELO ${ventaData.vuelo} PARA CLIENTE ${ventaData.id_pasajero}`, 'VENTAS');
+    setIsVentaModalOpen(false);
+  };
+
+  const deleteClient = (id) => {
+    setClientes(clientes.filter(c => c.id_pasajero !== id));
+    registrarLog(`ELIMINÓ CLIENTE ID: ${id}`, 'CLIENTES');
+  };
+
+  const filteredClientes = clientes.filter(c => 
+    c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.correo_electronico.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Sidebar */}
+      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 overflow-y-auto">
+        <div className="p-6 flex items-center gap-3 border-b border-slate-800 shrink-0">
+          <Plane className="text-blue-400" />
+          <h2 className="text-xl font-bold tracking-wide">AeroCRM</h2>
+        </div>
+        
+        <div className="p-4 border-b border-slate-800 bg-slate-800/50 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+              {user.username.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-semibold capitalize">{user.username}</p>
+              <p className="text-xs text-blue-300 flex items-center gap-1">
+                <Shield size={12} /> {user.role}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <MenuButton icon={<Users size={18}/>} label="Directorio Clientes" active={activeTab==='clientes'} onClick={() => setActiveTab('clientes')} />
+          <MenuButton icon={<ShoppingCart size={18}/>} label="Ventas & Boletos" active={activeTab==='ventas'} onClick={() => setActiveTab('ventas')} />
+          
+          {canViewAdvanced && (
+            <>
+              <div className="pt-4 pb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Auditoría & Sistema</div>
+              <MenuButton icon={<Activity size={18}/>} label="Seguimiento (Logs)" active={activeTab==='logs'} onClick={() => setActiveTab('logs')} />
+              <MenuButton icon={<Database size={18}/>} label="Consola BD" active={activeTab==='db'} onClick={() => { setActiveTab('db'); registrarLog('CONSULTÓ BASE DE DATOS', 'DB'); }} />
+            </>
+          )}
+
+          <div className="pt-4 pb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Cumplimiento</div>
+          <MenuButton icon={<Shield size={18}/>} label="Privacidad ARCO" active={activeTab==='arco'} onClick={() => setActiveTab('arco')} />
+        </nav>
+
+        <div className="p-4 border-t border-slate-800 shrink-0">
+          <button onClick={onLogout} className="w-full flex items-center gap-3 text-slate-400 hover:text-white px-4 py-2 rounded-lg transition-colors">
+            <LogOut size={20} /> Salir
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        
+        {/* TAB: CLIENTES */}
+        {activeTab === 'clientes' && (
+          <>
+            <header className="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center shrink-0">
+              <h1 className="text-2xl font-bold text-slate-800">Directorio de Pasajeros</h1>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input type="text" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-64" />
+                </div>
+                {canCreate && (
+                  <button onClick={() => {setEditingClient(null); setIsClientModalOpen(true);}} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium">
+                    <Plus size={20} /> Nuevo
+                  </button>
+                )}
+              </div>
+            </header>
+            <div className="flex-1 overflow-auto p-8">
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b text-slate-600 text-sm">
+                      <th className="p-4 font-semibold">Doc. Cifrado (Pasaporte)</th>
+                      <th className="p-4 font-semibold">Nombre Completo</th>
+                      <th className="p-4 font-semibold">Contacto</th>
+                      <th className="p-4 font-semibold">Auditoría</th>
+                      <th className="p-4 font-semibold text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {filteredClientes.map((c) => {
+                       const docVisible = user.role === ROLES.ADMIN ? decryptData(c.documento_identidad_enc) : `***${decryptData(c.documento_identidad_enc).slice(-4)}`;
+                       return (
+                        <tr key={c.id_pasajero} className="hover:bg-slate-50">
+                          <td className="p-4 font-mono text-sm">
+                             <div className="flex items-center gap-2">
+                               {user.role === ROLES.ADMIN ? <Lock size={14} className="text-green-500"/> : <Lock size={14} className="text-slate-400"/>}
+                               {docVisible}
+                             </div>
+                          </td>
+                          <td className="p-4 font-medium">{c.nombre} {c.apellido}</td>
+                          <td className="p-4 text-sm text-slate-600"><div>{c.correo_electronico}</div><div>{c.telefono}</div></td>
+                          <td className="p-4 text-xs text-slate-500"><div>Creado por: {c.creado_por}</div><div>{c.fecha_creacion}</div></td>
+                          <td className="p-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              {canEdit && <button onClick={() => {setEditingClient({...c, documento_identidad: decryptData(c.documento_identidad_enc)}); setIsClientModalOpen(true);}} className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 rounded"><Edit2 size={16}/></button>}
+                              {canDelete && <button onClick={() => deleteClient(c.id_pasajero)} className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 rounded"><Trash2 size={16}/></button>}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* TAB: VENTAS */}
+        {activeTab === 'ventas' && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+             <header className="bg-white shadow-sm border-b px-8 py-4 flex justify-between shrink-0">
+               <h1 className="text-2xl font-bold text-slate-800">Control de Ventas</h1>
+               {canCreate && <button onClick={() => setIsVentaModalOpen(true)} className="bg-green-600 text-white px-4 py-2 rounded-lg flex gap-2"><ShoppingCart size={20}/> Vender Boleto</button>}
+             </header>
+             <div className="flex-1 overflow-auto p-8">
+               <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
+                 <table className="w-full text-left border-collapse">
+                   <thead className="bg-slate-50 border-b text-sm">
+                     <tr><th className="p-4">ID Venta</th><th className="p-4">ID Cliente</th><th className="p-4">Vuelo / Clase</th><th className="p-4">Monto</th><th className="p-4">Vendedor / Fecha</th></tr>
+                   </thead>
+                   <tbody className="divide-y text-sm">
+                     {ventas.map(v => (
+                       <tr key={v.id_venta}>
+                         <td className="p-4 font-mono font-bold">#{v.id_venta}</td>
+                         <td className="p-4">Pasajero #{v.id_pasajero}</td>
+                         <td className="p-4"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold mr-2">{v.vuelo}</span> {v.clase}</td>
+                         <td className="p-4 font-medium text-green-700">${v.monto}</td>
+                         <td className="p-4 text-xs text-slate-500">{v.vendedor}<br/>{v.fecha}</td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          </div>
+        )}
+
+        {/* TAB: LOGS DE AUDITORÍA */}
+        {activeTab === 'logs' && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+             <header className="bg-white shadow-sm border-b px-8 py-4 shrink-0">
+               <h1 className="text-2xl font-bold text-slate-800">Bitácora de Auditoría (Logs)</h1>
+               <p className="text-sm text-slate-500">Historial inmutable de movimientos del sistema.</p>
+             </header>
+             <div className="flex-1 overflow-auto p-8">
+               <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-sm overflow-hidden text-slate-300 font-mono text-xs">
+                 <table className="w-full text-left border-collapse">
+                   <thead className="bg-slate-950 border-b border-slate-800">
+                     <tr><th className="p-3">Fecha / Hora</th><th className="p-3">IP Origen</th><th className="p-3">Usuario (Rol)</th><th className="p-3">Módulo</th><th className="p-3">Acción Registrada</th></tr>
+                   </thead>
+                   <tbody className="divide-y divide-slate-800/50">
+                     {logs.map(log => (
+                       <tr key={log.id_log} className="hover:bg-slate-800/50">
+                         <td className="p-3 text-slate-500">{log.fecha}</td>
+                         <td className="p-3 text-emerald-500">{log.ip}</td>
+                         <td className="p-3"><span className="text-blue-400">{log.usuario}</span> <span className="text-slate-500">[{log.rol}]</span></td>
+                         <td className="p-3"><span className="bg-slate-800 px-2 py-1 rounded">{log.modulo}</span></td>
+                         <td className="p-3 text-slate-100">{log.accion}</td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          </div>
+        )}
+
+        {/* TAB: CONSOLA DB (JSON) */}
+        {activeTab === 'db' && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+             <header className="bg-white shadow-sm border-b px-8 py-4 shrink-0">
+               <h1 className="text-2xl font-bold text-slate-800">Consola de Base de Datos</h1>
+               <p className="text-sm text-slate-500">Vista cruda del almacenamiento (Read-Only).</p>
+             </header>
+             <div className="flex-1 overflow-auto p-8 flex gap-4">
+               <div className="flex-1 bg-slate-900 rounded-lg p-4 overflow-y-auto">
+                 <h3 className="text-slate-400 font-bold mb-2">Tabla: CLIENTES</h3>
+                 <pre className="text-emerald-400 font-mono text-xs">{JSON.stringify(clientes, null, 2)}</pre>
+               </div>
+               <div className="flex-1 bg-slate-900 rounded-lg p-4 overflow-y-auto">
+                 <h3 className="text-slate-400 font-bold mb-2">Tabla: VENTAS</h3>
+                 <pre className="text-emerald-400 font-mono text-xs">{JSON.stringify(ventas, null, 2)}</pre>
+               </div>
+             </div>
+          </div>
+        )}
+
+        {/* TAB: PRIVACIDAD ARCO */}
+        {activeTab === 'arco' && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+             <header className="bg-white shadow-sm border-b px-8 py-4 shrink-0">
+               <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Shield className="text-blue-600"/> Centro de Cumplimiento ARCO</h1>
+               <p className="text-sm text-slate-500">Gestión legal de datos personales a petición del titular.</p>
+             </header>
+             <div className="flex-1 overflow-auto p-8">
+               <div className="bg-white rounded-xl shadow-sm border p-6 max-w-4xl">
+                 <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-6 flex items-start gap-3">
+                   <CheckCircle className="text-blue-600 mt-1 shrink-0"/>
+                   <div className="text-sm text-blue-900">
+                     <b>Protocolo Activo.</b> Como responsable del tratamiento, puedes atender aquí las solicitudes de Rectificación y Cancelación de los titulares. Todo movimiento quedará registrado en la bitácora de auditoría inmutable.
+                   </div>
+                 </div>
+
+                 <h3 className="font-bold text-slate-700 mb-4">Búsqueda de Titular (Cliente)</h3>
+                 <div className="flex gap-4 mb-6">
+                   <input type="text" placeholder="Buscar por nombre o correo..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 border p-2 rounded-lg" />
+                 </div>
+
+                 <div className="space-y-4">
+                   {filteredClientes.map(c => (
+                     <div key={c.id_pasajero} className="border p-4 rounded-lg flex justify-between items-center hover:shadow-md transition-shadow">
+                        <div>
+                          <p className="font-bold text-slate-800">{c.nombre} {c.apellido}</p>
+                          <p className="text-sm text-slate-500">{c.correo_electronico} • ID: {c.id_pasajero}</p>
+                        </div>
+                        <div className="flex gap-2">
+                           {canEdit && <button onClick={() => { setActiveTab('clientes'); setEditingClient({...c, documento_identidad: decryptData(c.documento_identidad_enc)}); setIsClientModalOpen(true); }} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded text-xs font-medium hover:bg-slate-200">Rectificar</button>}
+                           {canDelete && <button onClick={() => { 
+                             setClientes(clientes.filter(x => x.id_pasajero !== c.id_pasajero)); 
+                             registrarLog(`EJECUTÓ DERECHO CANCELACIÓN ARCO: ID ${c.id_pasajero}`, 'PRIVACIDAD');
+                           }} className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 flex items-center gap-1"><Trash2 size={14}/> Purgar (Borrar)</button>}
+                        </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* Modales Compartidos */}
+      {isClientModalOpen && (
+        <ClientModal 
+          client={editingClient} 
+          onClose={() => setIsClientModalOpen(false)} 
+          onSave={handleSaveClient} 
+        />
+      )}
+      {isVentaModalOpen && (
+        <VentaModal 
+          clientes={clientes} 
+          onClose={() => setIsVentaModalOpen(false)} 
+          onSave={handleSaveVenta} 
+        />
+      )}
+    </div>
+  );
+}
+
+// Botón Menú Auxiliar
+const MenuButton = ({ icon, label, active, onClick }) => (
+  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${active ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+    {icon} {label}
+  </button>
+);
+
+// --- MODAL DE CLIENTES (CRUD) ---
+function ClientModal({ client, onClose, onSave }) {
+  const [formData, setFormData] = useState({
+    nombre: client?.nombre || '', apellido: client?.apellido || '', documento_identidad: client?.documento_identidad || '',
+    correo_electronico: client?.correo_electronico || '', telefono: client?.telefono || ''
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (Object.values(formData).some(val => val.trim() === '')) { setError('Todos los campos son obligatorios.'); return; }
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[95vh]">
+        <div className="bg-slate-50 border-b px-6 py-4 flex justify-between shrink-0">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2"><Users size={20} className="text-blue-600"/> {client ? 'Editar Pasajero' : 'Registrar Pasajero'}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">{error}</div>}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label><input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500" /></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label><input type="text" value={formData.apellido} onChange={e => setFormData({...formData, apellido: e.target.value})} className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500" /></div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Documento Identidad <Lock size={12} className="inline text-green-600"/></label>
+            <input type="text" value={formData.documento_identidad} onChange={e => setFormData({...formData, documento_identidad: e.target.value})} className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500 uppercase" placeholder="Este dato será cifrado en BD" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Correo</label><input type="email" value={formData.correo_electronico} onChange={e => setFormData({...formData, correo_electronico: e.target.value})} className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500" /></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label><input type="tel" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500" /></div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700">{client ? 'Actualizar' : 'Guardar'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- MODAL DE VENTAS ---
+function VentaModal({ clientes, onClose, onSave }) {
+  const [formData, setFormData] = useState({ id_pasajero: '', vuelo: '', clase: 'Económica', monto: '' });
+  const [error, setError] = useState('');
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.id_pasajero || !formData.vuelo || !formData.monto) {
+      setError('Completa todos los campos obligatorios.');
+      return;
+    }
+    onSave({ ...formData, id_pasajero: parseInt(formData.id_pasajero), monto: parseFloat(formData.monto) });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-md overflow-hidden shadow-xl">
+        <div className="px-5 py-3 border-b bg-green-50 flex justify-between items-center shrink-0">
+          <h3 className="font-bold text-green-800">Nueva Venta de Boleto</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {error && <p className="text-red-500 text-xs bg-red-50 p-2 rounded border border-red-100">{error}</p>}
+          <div>
+             <label className="block text-sm font-medium text-slate-700 mb-1">Cliente Registrado</label>
+             <select className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-green-500 outline-none" value={formData.id_pasajero} onChange={e => setFormData({...formData, id_pasajero: e.target.value})}>
+               <option value="">-- Seleccionar --</option>
+               {clientes.map(c => <option key={c.id_pasajero} value={c.id_pasajero}>{c.nombre} {c.apellido} (ID: {c.id_pasajero})</option>)}
+             </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+             <div>
+               <label className="block text-sm font-medium text-slate-700 mb-1">Cód. Vuelo</label>
+               <input type="text" className="w-full border p-2 rounded text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" placeholder="MX-123" value={formData.vuelo} onChange={e => setFormData({...formData, vuelo: e.target.value.toUpperCase()})} />
+             </div>
+             <div>
+               <label className="block text-sm font-medium text-slate-700 mb-1">Monto ($)</label>
+               <input type="number" className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-green-500 outline-none" placeholder="0.00" value={formData.monto} onChange={e => setFormData({...formData, monto: e.target.value})} />
+             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Clase</label>
+            <select className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-green-500 outline-none" value={formData.clase} onChange={e => setFormData({...formData, clase: e.target.value})}>
+              <option value="Económica">Económica</option>
+              <option value="Ejecutiva">Ejecutiva</option>
+              <option value="Primera Clase">Primera Clase</option>
+            </select>
+          </div>
+          <div className="flex justify-end pt-2">
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 w-full font-medium">Procesar Venta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+https://gemini.google.com/share/19345bd18f9b

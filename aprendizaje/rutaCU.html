@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruta de Aprendizaje CPD - TaskTUVCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* --- VARIABLES DE TEMA CUIDADO DE PERSONAS DEPENDIENTES (CPD) --- */
+        :root {
+            --bg-center: #4a1535;
+            --bg-edge: #12030c;
+            --accent: #ff69b4;
+            --star-color: rgba(255,182,193,0.8);
+            --boss-color: #ff1493; 
+            --success-color: #00e676;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; 
+            font-family: 'Fredoka', sans-serif;
+            background-color: transparent;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- ELEMENTOS FLOTANTES UI --- */
+        #btn-volver {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 18px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+            text-shadow: 0 0 5px var(--accent);
+        }
+        #btn-volver:hover {
+            background: var(--accent);
+            color: black;
+            box-shadow: 0 0 20px var(--accent);
+            transform: scale(1.05);
+        }
+
+        #img-ajoenfer {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 50;
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+            transition: transform 0.3s ease;
+        }
+        #img-ajoenfer:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* --- FONDOS Y EFECTOS (PANTALLA DE MONITOR MÉDICO) --- */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, var(--bg-center) 0%, var(--bg-edge) 65%);
+            z-index: -4;
+        }
+
+        /* Cuadrícula de monitor médico */
+        .stars {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 105, 180, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 105, 180, 0.15) 1px, transparent 1px);
+            background-size: 35px 35px;
+            z-index: -3;
+        }
+
+        /* Canvas para el Electrograma Realista */
+        #ecgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw; 
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.8; 
+            pointer-events: none;
+        }
+
+        .escenario {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========================================= */
+        /* 1. ZONA SUPERIOR E INFERIOR (PANELES)     */
+        /* ========================================= */
+        .pasto-superior, .pasto-inferior {
+            height: 25vh; 
+            background: rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.15);
+            backdrop-filter: blur(5px);
+        }
+
+        .pasto-superior {
+            border-bottom: 3px solid var(--accent);
+            border-bottom-left-radius: 50% 20px; 
+            border-bottom-right-radius: 50% 20px;
+        }
+
+        .pasto-inferior {
+            border-top: 3px solid var(--accent);
+            border-top-left-radius: 50% 20px;
+            border-top-right-radius: 50% 20px;
+            height: 25vh;
+            margin-top: auto;
+        }
+
+        .titulo-ruta {
+            margin-top: 30px;
+            color: white; 
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8vw;
+            text-shadow: 0 0 10px white, 0 0 20px var(--accent);
+            letter-spacing: 2px;
+            z-index: 10;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* Iconos médicos de fondo */
+        .flora {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.7;
+            filter: drop-shadow(0 0 10px var(--accent));
+            z-index: 10;
+        }
+
+        /* Líneas de escáner */
+        .ondas {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            z-index: 1;
+            opacity: 0.5;
+        }
+        .ondas-arriba { bottom: -2px; animation: scan-up 4s infinite linear; }
+        .ondas-abajo { top: -2px; animation: scan-down 4s infinite linear; }
+
+        @keyframes scan-up { 0% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 0.5; } }
+        @keyframes scan-down { 0% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-20px); opacity: 0; } 100% { transform: translateY(0); opacity: 0.5; } }
+
+        /* ========================================= */
+        /* 2. ZONA CENTRAL (CÁPSULAS)                */
+        /* ========================================= */
+        .zona-agua {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-evenly; 
+            align-items: center;
+            padding: 0 5vw;
+        }
+
+        /* Línea central conectora */
+        .linea-conexion {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            width: 90%;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, var(--accent) 0px, var(--accent) 15px, transparent 15px, transparent 30px);
+            z-index: 1;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px var(--accent);
+            opacity: 0.4;
+            animation: cyber-flow 2s infinite linear;
+        }
+
+        @keyframes cyber-flow { 0% { background-position-x: 0; } 100% { background-position-x: 30px; } }
+
+        /* CONTENEDOR DE LA CÁPSULA DE PASTILLA */
+        .capsula {
+            width: clamp(130px, 16vw, 170px);
+            height: clamp(55px, 7vw, 75px);
+            background: linear-gradient(90deg, rgba(255, 105, 180, 0.4) 50%, rgba(255, 255, 255, 0.1) 50%);
+            border-radius: 50px; 
+            border: 3px solid #7a224d;
+            cursor: pointer;
+            z-index: 2;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .capsula::after {
+            content: '💊'; 
+            position: absolute;
+            top: -15px;
+            left: -10px;
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px var(--accent));
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .capsula:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent), inset 0 0 15px rgba(255, 105, 180, 0.4);
+            background: linear-gradient(90deg, rgba(255, 105, 180, 0.6) 50%, rgba(255, 255, 255, 0.25) 50%);
+            transform: scale(1.1) !important;
+        }
+        .capsula:hover::after { transform: scale(1.2) rotate(-15deg); }
+
+        /* ESTADOS COMPLETADOS */
+        .capsula.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 15px var(--success-color), inset 0 0 15px rgba(0, 230, 118, 0.3) !important;
+            background: linear-gradient(90deg, rgba(0, 230, 118, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%);
+        }
+        .capsula.completado span::after {
+            content: ' ✔';
+            color: var(--success-color);
+            text-shadow: 0 0 5px var(--success-color);
+            font-weight: bold;
+        }
+
+        .capsula.prueba-final {
+            border-color: var(--boss-color);
+            background: linear-gradient(90deg, rgba(255, 20, 147, 0.4) 50%, rgba(255, 255, 255, 0.1) 50%);
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
+        }
+        .capsula.prueba-final::after {
+            content: '❤️‍🩹';
+            filter: drop-shadow(0 0 8px var(--boss-color)); 
+        }
+        .capsula.prueba-final:hover {
+            box-shadow: 0 0 20px var(--boss-color), inset 0 0 15px rgba(255, 20, 147, 0.4);
+            background: linear-gradient(90deg, rgba(255, 20, 147, 0.6) 50%, rgba(255, 255, 255, 0.25) 50%);
+        }
+        .capsula.prueba-final.completado {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 25px var(--success-color), inset 0 0 15px rgba(0, 230, 118, 0.5) !important;
+            background: linear-gradient(90deg, rgba(0, 230, 118, 0.3) 50%, rgba(255, 255, 255, 0.2) 50%);
+        }
+
+        /* TEXTO DE LA CÁPSULA */
+        .capsula span {
+            color: #fff;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: clamp(0.7rem, 1vw, 0.95rem);
+            line-height: 1.2;
+            z-index: 3;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 10px;
+            border-radius: 10px;
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .capsula:hover span {
+            box-shadow: 0 0 10px var(--accent);
+            transform: scale(1.05);
+        }
+
+        /* ANIMACIÓN DE FLOTE TIPO PULSO */
+        .capsula:nth-child(odd) { transform: translateY(-20px); }
+        .capsula:nth-child(even) { transform: translateY(20px); }
+
+        @keyframes latido { 0%, 100% { margin-top: 0; } 50% { margin-top: -8px; } }
+        
+        .capsula:nth-child(1) { animation: latido 3s infinite ease-in-out; }
+        .capsula:nth-child(2) { animation: latido 2.5s infinite ease-in-out 0.5s; }
+        .capsula:nth-child(3) { animation: latido 3.2s infinite ease-in-out 1s; }
+        .capsula:nth-child(4) { animation: latido 2.8s infinite ease-in-out 0.2s; }
+        .capsula:nth-child(5) { animation: latido 3.5s infinite ease-in-out 0.8s; }
+        .capsula:nth-child(6) { animation: latido 2.9s infinite ease-in-out 1.2s; }
+
+        /* ========================================= */
+        /* 4. MODALES Y CONTENIDO                    */
+        /* ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(43, 8, 27, 0.95); border: 3px solid var(--accent); border-radius: 20px;
+            width: 80%; max-width: 800px; max-height: 80vh; padding: 30px;
+            color: white; overflow-y: auto;
+            position: relative; box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255, 105, 180, 0.3);
+        }
+
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #12030c; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; font-size: 25px;
+            color: var(--accent); cursor: pointer; font-family: 'Press Start 2P', cursive;
+            transition: transform 0.2s, text-shadow 0.2s;
+        }
+        .modal-close:hover { 
+            transform: scale(1.2); 
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .modal-title {
+            font-family: 'Press Start 2P', cursive; color: var(--accent); text-align: center;
+            font-size: 1.4rem; margin-top: 10px; margin-bottom: 25px; line-height: 1.5;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .code-block {
+            background: #12030c; padding: 15px; border-radius: 10px;
+            border-left: 5px solid var(--accent); font-family: monospace;
+            overflow-x: auto; color: #ffb6c1; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            line-height: 1.5;
+        }
+
+        .btn-accion {
+            background: rgba(0,0,0,0.45); color: white; 
+            border: 2px solid var(--accent); padding: 15px 20px;
+            font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.1rem;
+            border-radius: 12px; cursor: pointer; 
+            margin-top: 15px; display: block; width: 100%;
+            transition: all 0.3s ease; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .btn-accion:hover { 
+            background: var(--accent); color: #fff; 
+            box-shadow: 0 0 15px var(--accent); transform: scale(1.02);
+        }
+
+        .btn-completar {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            margin-top: 25px;
+        }
+        .btn-completar:hover {
+            background: var(--success-color);
+            color: black;
+            box-shadow: 0 0 15px var(--success-color);
+        }
+
+        .quiz-question { margin-bottom: 20px; border-bottom: 1px dashed var(--accent); padding-bottom: 10px; }
+        .quiz-question p { font-weight: 600; font-size: 1.1rem; color: var(--accent); }
+        .quiz-question label { cursor: pointer; display: block; margin-bottom: 5px; }
+        
+        .match-grid { display: flex; justify-content: space-between; gap: 20px; margin-top: 20px; }
+        .match-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .match-item {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; text-align: center;
+            cursor: pointer; border: 2px solid #555; transition: 0.3s;
+            user-select: none; font-weight: 500;
+        }
+        .match-item:hover { border-color: var(--accent); }
+        .match-item.selected { border-color: var(--accent); background: rgba(255, 105, 180, 0.2); box-shadow: 0 0 10px var(--accent); }
+        .match-item.matched { background: #4caf50; border-color: #81c784; color: white; cursor: default; opacity: 0.8; }
+        .match-item.error { background: #d50000; border-color: #ff1744; }
+
+    </style>
+</head>
+<body>
+
+    <button id="btn-volver" onclick="window.location.href='vista2.html'">⬅ VOLVER</button>
+    
+    <img id="img-ajoenfer" src="ajoenfer.png" alt="Ajoenfer">
+
+    <div class="stars"></div>
+    <canvas id="ecgCanvas"></canvas>
+
+    <div class="escenario">
+        <div class="pasto-superior">
+            <h1 class="titulo-ruta">APRENDIZAJE GUIADO<br>C.P.D.</h1>
+            <div class="flora" style="bottom: 10px; left: 10%;">🩺</div>
+            <div class="flora" style="bottom: 25px; left: 20%;">🛏️</div>
+            <div class="flora" style="bottom: 5px; right: 15%;">🩹</div>
+            <div class="flora" style="bottom: 20px; right: 5%;">🦽</div>
+            <div class="ondas ondas-arriba"></div>
+        </div>
+
+        <div class="zona-agua">
+            <div class="linea-conexion"></div>
+            
+            <button id="capsula-lectura" class="capsula" onclick="abrirModal('modal-lectura')">
+                <span>Fundamentos<br>CPD</span>
+            </button>
+            <button id="capsula-ejemplos" class="capsula" onclick="abrirModal('modal-ejemplos')">
+                <span>Protocolos<br>Clínicos</span>
+            </button>
+            <button id="capsula-cuestionario" class="capsula" onclick="abrirModal('modal-cuestionario')">
+                <span>Evaluación<br>Teórica</span>
+            </button>
+            <button id="capsula-conectar" class="capsula" onclick="iniciarConectarConceptos()">
+                <span>Términos<br>Médicos</span>
+            </button>
+            <button id="capsula-juego" class="capsula" onclick="juegoRapido()">
+                <span>Simulador<br>Clínico</span>
+            </button>
+            <button id="capsula-prueba" class="capsula prueba-final" onclick="abrirModal('modal-prueba')">
+                <span style="color: #fff;">Examen<br>Final</span>
+            </button>
+        </div>
+
+        <div class="pasto-inferior">
+            <div class="ondas ondas-abajo"></div>
+            <div class="flora" style="top: 10px; left: 5%;">🏥</div>
+            <div class="flora" style="top: 25px; left: 25%;">💉</div>
+            <div class="flora" style="top: 5px; right: 20%;">🦼</div>
+            <div class="flora" style="top: 20px; right: 8%;">⚕️</div>
+        </div>
+    </div>
+
+    <div id="modal-lectura" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-lectura')">X</span>
+            <h2 class="modal-title">Fundamentos del Cuidado (CPD)</h2>
+            <p>El <strong>Cuidado de Personas Dependientes</strong> requiere conocimientos técnicos y empatía humana. Los pilares fundamentales para garantizar la calidad de vida del paciente son:</p>
+            <ul style="line-height: 1.6; margin-top: 15px;">
+                <li><strong style="color:var(--accent);">Higiene Postural:</strong> Técnicas que debe usar el cuidador al levantar o mover al paciente para evitar lesiones en su propia espalda (ej. flexionar rodillas, mantener espalda recta).</li>
+                <li><strong style="color:var(--accent);">Prevención de Úlceras (Escaras):</strong> Cambios posturales cada 2 o 3 horas para evitar lesiones en la piel por presión prolongada en pacientes encamados.</li>
+                <li><strong style="color:var(--accent);">Signos Vitales:</strong> Monitoreo constante de la Frecuencia Cardíaca, Tensión Arterial, Temperatura y Frecuencia Respiratoria.</li>
+                <li><strong style="color:var(--accent);">Apoyo Psicoemocional:</strong> Fomentar la autoestima del paciente, escuchar activamente y promover su autonomía en la medida de lo posible.</li>
+            </ul>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('capsula-lectura', 'modal-lectura')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <div id="modal-ejemplos" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-ejemplos')">X</span>
+            <h2 class="modal-title">Protocolo de Movilización</h2>
+            <p>Ejemplo práctico: <strong>Técnica para girar a un paciente encamado (Decúbito Supino a Decúbito Lateral)</strong>.</p>
+            <div class="code-block">
+<pre><code>[PROTOCOLO ESTÁNDAR - TAREA TUVCH]
+1. Informar al paciente: "Le voy a dar la vuelta para que esté más cómodo".
+2. Preparación: Frena la cama y ajusta la altura.
+3. Posicionamiento: 
+   - Colocar el brazo del paciente sobre su tórax.
+   - Flexionar la pierna contraria al lado hacia el que se va a girar.
+4. Movimiento: 
+   - Colocar una mano en el hombro y otra en la cadera del paciente.
+   - Tirar suavemente hacia el cuidador usando el propio peso del cuerpo.
+5. Confort: Colocar almohadas detrás de la espalda y entre las rodillas para evitar roces (prevención de escaras).</code></pre>
+            </div>
+            <p style="margin-top: 15px;">Nota: En tu aplicación, los cuidadores pueden programar alarmas para que la app les notifique cada vez que toque realizar este cambio postural.</p>
+            <button class="btn-accion btn-completar" onclick="marcarCompletado('capsula-ejemplos', 'modal-ejemplos')">MARCAR COMO COMPLETADO</button>
+        </div>
+    </div>
+
+    <div id="modal-cuestionario" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-cuestionario')">X</span>
+            <h2 class="modal-title">Evaluación Teórica</h2>
+            <p style="margin-bottom: 20px;">Responde estas preguntas basándote en la lectura "Fundamentos".</p>
+            <form id="form-cuestionario">
+                <div class="quiz-question">
+                    <p>1. ¿Qué son las úlceras por presión o escaras?</p>
+                    <label><input type="radio" name="q1" value="a"> a) Lesiones en la piel causadas por mantener la misma posición mucho tiempo.</label>
+                    <label><input type="radio" name="q1" value="b"> b) Enfermedades respiratorias crónicas.</label>
+                    <label><input type="radio" name="q1" value="c"> c) Técnicas para levantar a un paciente.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>2. ¿Para qué sirve la "Higiene Postural"?</p>
+                    <label><input type="radio" name="q2" value="a"> a) Para bañar al paciente correctamente.</label>
+                    <label><input type="radio" name="q2" value="b"> b) Para prevenir lesiones en la espalda del cuidador al hacer esfuerzos.</label>
+                    <label><input type="radio" name="q2" value="c"> c) Para medir la presión arterial.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>3. ¿Cada cuánto tiempo se recomiendan los cambios posturales en personas encamadas?</p>
+                    <label><input type="radio" name="q3" value="a"> a) Cada 2 o 3 horas.</label>
+                    <label><input type="radio" name="q3" value="b"> b) Solo una vez al día.</label>
+                    <label><input type="radio" name="q3" value="c"> c) Cuando el paciente lo pida.</label>
+                </div>
+                <div class="quiz-question">
+                    <p>4. El Apoyo Psicoemocional implica:</p>
+                    <label><input type="radio" name="q4" value="a"> a) Darle medicamentos para dormir.</label>
+                    <label><input type="radio" name="q4" value="b"> b) Ignorar las quejas del paciente.</label>
+                    <label><input type="radio" name="q4" value="c"> c) Escuchar activamente y promover su autonomía.</label>
+                </div>
+                <button type="button" class="btn-accion" onclick="evaluarCuestionario('form-cuestionario', 'q', ['a', 'b', 'a', 'c'], 'capsula-cuestionario')">EVALUAR DIAGNÓSTICO</button>
+            </form>
+            <p id="res-cuestionario" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-conectar" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal('modal-conectar')">X</span>
+            <h2 class="modal-title">Conectar Términos</h2>
+            <p style="text-align:center;">Asocia el término clínico de la izquierda con su definición a la derecha.</p>
+            <div class="match-grid">
+                <div class="match-col" id="col-conceptos"></div>
+                <div class="match-col" id="col-definiciones"></div>
+            </div>
+            <p id="res-conectar" style="text-align:center; font-weight:bold; margin-top:20px; color:var(--accent); font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-prueba" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--boss-color);">
+            <span class="modal-close" style="color: var(--boss-color);" onclick="cerrarModal('modal-prueba')">X</span>
+            <h2 class="modal-title" style="color: var(--boss-color);">Examen Final Clínico</h2>
+            <p style="margin-bottom: 20px;">Demuestra tus conocimientos integrales en el cuidado del paciente.</p>
+            <form id="form-prueba">
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">1. De acuerdo al protocolo, ¿qué es lo primero que debes hacer antes de movilizar a un paciente?</p>
+                    <label><input type="radio" name="p1" value="a"> a) Tirar fuertemente del brazo.</label>
+                    <label><input type="radio" name="p1" value="b"> b) Informar al paciente lo que vas a hacer.</label>
+                    <label><input type="radio" name="p1" value="c"> c) Quitarle todas las almohadas.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">2. Las zonas más comunes donde aparecen úlceras por presión son:</p>
+                    <label><input type="radio" name="p2" value="a"> a) Talones, sacro (coxis) y codos.</label>
+                    <label><input type="radio" name="p2" value="b"> b) Manos y rostro.</label>
+                    <label><input type="radio" name="p2" value="c"> c) Estómago y pecho.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">3. Si la app TaskTUVCH te lanza una alerta de "Monitoreo Constante", probablemente se refiera a medir:</p>
+                    <label><input type="radio" name="p3" value="a"> a) El nivel de batería del monitor.</label>
+                    <label><input type="radio" name="p3" value="b"> b) Los Signos Vitales (FC, TA, Temp, FR).</label>
+                    <label><input type="radio" name="p3" value="c"> c) La dieta de la semana pasada.</label>
+                </div>
+                <div class="quiz-question" style="border-bottom-color: var(--boss-color);">
+                    <p style="color: var(--boss-color);">4. Al posicionar a un paciente en Decúbito Lateral, ¿dónde se deben colocar almohadas para el confort?</p>
+                    <label><input type="radio" name="p4" value="a"> a) Solo debajo de la cabeza.</label>
+                    <label><input type="radio" name="p4" value="b"> b) Encima del estómago.</label>
+                    <label><input type="radio" name="p4" value="c"> c) Detrás de la espalda y entre las rodillas.</label>
+                </div>
+                <button type="button" class="btn-accion" style="border-color: var(--boss-color);" onmouseover="this.style.boxShadow='0 0 15px var(--boss-color)'; this.style.backgroundColor='var(--boss-color)'; this.style.color='#fff';" onmouseout="this.style.boxShadow='0 0 10px rgba(0,0,0,0.5)'; this.style.backgroundColor='rgba(0,0,0,0.45)'; this.style.color='white';" onclick="evaluarCuestionario('form-prueba', 'p', ['b', 'a', 'b', 'c'], 'capsula-prueba', true)">FINALIZAR EXAMEN</button>
+            </form>
+            <p id="res-prueba" style="text-align:center; font-weight:bold; margin-top:15px; font-size:1.1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-victoria" class="modal-overlay">
+        <div class="modal-content" style="text-align: center; border-color: var(--success-color);">
+            <span class="modal-close" style="color: var(--success-color);" onclick="cerrarModal('modal-victoria')">X</span>
+            <h2 class="modal-title" style="color: var(--success-color); font-size: 2rem;">¡SISTEMA SUPERADO!</h2>
+            <p style="font-size: 1.3rem; line-height: 1.6; margin-top: 20px;">
+                Felicidades por completar este tema, ahora tiene una buena idea de lo que es el CPD.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DE MODALES Y JUEGOS ---
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function marcarCompletado(capsulaId, modalId) {
+            document.getElementById(capsulaId).classList.add('completado');
+            if(modalId) cerrarModal(modalId);
+        }
+
+        function juegoRapido() {
+            marcarCompletado('capsula-juego', null);
+            const juegos = ['juego1_CPD.html', 'juego2_cpd.html', 'juego3_CPD.html'];
+            const juegoAleatorio = juegos[Math.floor(Math.random() * juegos.length)];
+            alert("Iniciando Simulador Clínico: " + juegoAleatorio);
+            window.location.href = juegoAleatorio;
+        }
+
+        function evaluarCuestionario(formId, prefix, correctas, capsulaId, esPruebaFinal = false) {
+            const form = document.getElementById(formId);
+            let score = 0;
+            let respondidas = 0;
+
+            for (let i = 0; i < correctas.length; i++) {
+                const inputName = prefix + (i + 1);
+                const selected = form.querySelector(`input[name="${inputName}"]:checked`);
+
+                if (selected) {
+                    respondidas++;
+                    if (selected.value === correctas[i]) score++;
+                }
+            }
+
+            const resTexto = (formId === 'form-cuestionario') ? 'res-cuestionario' : 'res-prueba';
+            const contenedorRespuesta = document.getElementById(resTexto);
+
+            if (respondidas < correctas.length) {
+                contenedorRespuesta.style.color = '#ffcc00';
+                contenedorRespuesta.innerText = "Faltan campos por evaluar. Completa el diagnóstico.";
+            } else {
+                if (score === correctas.length) {
+                    document.getElementById(capsulaId).classList.add('completado');
+                    
+                    if(esPruebaFinal) {
+                        cerrarModal('modal-prueba');
+                        abrirModal('modal-victoria');
+                        lanzarConfeti();
+                    } else {
+                        contenedorRespuesta.style.color = '#00e676';
+                        contenedorRespuesta.innerText = "¡Excelente protocolo! Módulo completado.";
+                    }
+                } else {
+                    contenedorRespuesta.style.color = '#ff1744';
+                    contenedorRespuesta.innerText = `Calificación: ${score}/${correctas.length}. Se requiere repasar el manual.`;
+                }
+            }
+        }
+
+        function lanzarConfeti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // --- 2. JUEGO CONECTAR TÉRMINOS (CPD) ---
+        const pares = [
+            { id: 1, c: "Escaras", d: "Lesiones en la piel por presión constante en una zona." },
+            { id: 2, c: "Signos Vitales", d: "Indicadores físicos (pulso, presión, respiración)." },
+            { id: 3, c: "Empatía", d: "Habilidad para comprender las emociones del paciente." },
+            { id: 4, c: "Movilización", d: "Técnicas y cambios posturales del cuerpo." }
+        ];
+
+        let seleccionIzquierda = null;
+        let aciertos = 0;
+
+        function iniciarConectarConceptos() {
+            abrirModal('modal-conectar');
+            aciertos = 0; seleccionIzquierda = null;
+            document.getElementById('res-conectar').innerText = "";
+            
+            const colConceptos = document.getElementById('col-conceptos');
+            const colDefiniciones = document.getElementById('col-definiciones');
+            colConceptos.innerHTML = ''; colDefiniciones.innerHTML = '';
+
+            const definicionesDesordenadas = [...pares].sort(() => Math.random() - 0.5);
+
+            pares.forEach(item => {
+                let divC = document.createElement('div');
+                divC.className = 'match-item concepto';
+                divC.innerText = item.c; divC.dataset.id = item.id;
+                divC.onclick = () => seleccionarConcepto(divC);
+                colConceptos.appendChild(divC);
+            });
+
+            definicionesDesordenadas.forEach(item => {
+                let divD = document.createElement('div');
+                divD.className = 'match-item definicion';
+                divD.innerText = item.d; divD.dataset.id = item.id;
+                divD.onclick = () => comprobarPareja(divD);
+                colDefiniciones.appendChild(divD);
+            });
+        }
+
+        function seleccionarConcepto(elemento) {
+            if (elemento.classList.contains('matched')) return;
+            document.querySelectorAll('.concepto').forEach(el => el.classList.remove('selected'));
+            elemento.classList.add('selected');
+            seleccionIzquierda = elemento;
+        }
+
+        function comprobarPareja(definicion) {
+            if (definicion.classList.contains('matched') || !seleccionIzquierda) return;
+
+            if (seleccionIzquierda.dataset.id === definicion.dataset.id) {
+                seleccionIzquierda.classList.remove('selected');
+                seleccionIzquierda.classList.add('matched');
+                definicion.classList.add('matched');
+                seleccionIzquierda = null; aciertos++;
+
+                if (aciertos === pares.length) {
+                    document.getElementById('res-conectar').innerText = "¡SISTEMA ESTABLE! Todos los términos emparejados.";
+                    marcarCompletado('capsula-conectar', null);
+                }
+            } else {
+                definicion.classList.add('error');
+                setTimeout(() => definicion.classList.remove('error'), 500);
+            }
+        }
+
+        // --- 3. EFECTO MONITOR ECG (BARRIDO DE HOSPITAL) ---
+        const canvas = document.getElementById('ecgCanvas');
+        const ctx = canvas.getContext('2d');
+        let ecgLines = [];
+
+        function initECG() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Creamos 3 carriles de monitoreo a diferentes alturas
+            ecgLines = [
+                { y: canvas.height * 0.25, x: 0, speed: 3.5 },
+                { y: canvas.height * 0.50, x: 0, speed: 4.5 },
+                { y: canvas.height * 0.75, x: 0, speed: 2.5 }
+            ];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener('resize', initECG);
+        initECG();
+
+        function drawECG() {
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#ff69b4'; // Rosa neón
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ff69b4';
+
+            ecgLines.forEach((line) => {
+                let prevX = line.x;
+                let nextX = line.x + line.speed;
+
+                // 1. Configurar la goma de borrar (el hueco negro que avanza frente a la línea)
+                const gapWidth = 100; // Ancho del espacio borrado
+                const laneHeight = canvas.height / 3;
+                const laneTop = line.y - (laneHeight / 2);
+                
+                // Borrar la zona justo por delante del lápiz
+                ctx.clearRect(nextX, laneTop, gapWidth, laneHeight);
+                // Si la goma se sale por la derecha, empezar a borrar también por la izquierda
+                if (nextX + gapWidth > canvas.width) {
+                    ctx.clearRect(0, laneTop, (nextX + gapWidth) - canvas.width, laneHeight);
+                }
+
+                // 2. Trazar la línea del corazón
+                ctx.beginPath();
+                ctx.moveTo(prevX, line.y);
+
+                // 1.5% de probabilidad de que el paciente tenga un "latido" si no está muy cerca de los bordes
+                if (Math.random() < 0.015 && prevX > 30 && prevX < canvas.width - 100) {
+                    // Dibujando el Complejo QRS (el zigzag de un electrocardiograma)
+                    ctx.lineTo(prevX + 8, line.y - 5);   // Onda P
+                    ctx.lineTo(prevX + 12, line.y + 10); // Onda Q
+                    ctx.lineTo(prevX + 22, line.y - 80); // Onda R (Pico alto)
+                    ctx.lineTo(prevX + 32, line.y + 30); // Onda S (Caída profunda)
+                    ctx.lineTo(prevX + 42, line.y);      // Regreso al centro
+                    ctx.lineTo(prevX + 55, line.y - 15); // Onda T
+                    ctx.lineTo(prevX + 70, line.y);      // Línea plana de nuevo
+                    
+                    nextX = prevX + 70; // Adelantar el eje X para no sobrescribir el latido
+                    
+                    // Asegurar que la goma borre este "salto" también
+                    ctx.clearRect(nextX, laneTop, gapWidth, laneHeight);
+                    if (nextX + gapWidth > canvas.width) {
+                        ctx.clearRect(0, laneTop, (nextX + gapWidth) - canvas.width, laneHeight);
+                    }
+                } else {
+                    // Si no hay latido, dibujar una línea recta
+                    ctx.lineTo(nextX, line.y);
+                }
+
+                ctx.stroke();
+                line.x = nextX;
+
+                // Reiniciar al inicio cuando se sale de la pantalla
+                if (line.x > canvas.width) {
+                    line.x = 0;
+                }
+            });
+
+            requestAnimationFrame(drawECG);
+        }
+
+        // Iniciar la animación
+        drawECG();
+    </script>
+</body>
+</html>

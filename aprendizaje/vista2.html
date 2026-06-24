@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendizaje Guiado - TASKTUVCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- VARIABLES DE TEMA DINÁMICO --- */
+        body {
+            --bg-center: #0d3347;
+            --bg-edge: #020b14;
+            --accent: #00e5ff;
+            --star-color: rgba(255,255,255,0.8);
+        }
+
+        body.theme-sist {
+            --bg-center: #0d3347;
+            --bg-edge: #020b14;
+            --accent: #00e5ff;
+            --star-color: rgba(255,255,255,0.8);
+        }
+
+        body.theme-cuid {
+            --bg-center: #4a1535;
+            --bg-edge: #12030c;
+            --accent: #ff69b4;
+            --star-color: rgba(255,182,193,0.8);
+        }
+
+        body.theme-hote {
+            --bg-center: #5a1010;
+            --bg-edge: #0f0202;
+            --accent: #ff4444;
+            --star-color: rgba(255,128,128,0.8);
+        }
+
+        body.theme-meca {
+            --bg-center: #5c2b07;
+            --bg-edge: #140801;
+            --accent: #ff8c00;
+            --star-color: rgba(255,200,100,0.8);
+        }
+
+        /* --- ESTILOS BASE Y FONDOS --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-edge);
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding-top: 40px;
+            transition: background-color 0.3s ease;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, var(--bg-center) 0%, var(--bg-edge) 65%);
+            z-index: -4;
+            transition: all 0.3s ease;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(var(--star-color) 1px, transparent 1px);
+            background-size: 45px 45px;
+            opacity: .12;
+            z-index: -3;
+            transition: all 0.3s ease;
+        }
+
+        /* --- EFECTO MATRIX BINARIO (DERECHA) --- */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px; 
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.45; 
+            pointer-events: none;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 60%);
+            mask-image: linear-gradient(to right, transparent, black 60%);
+        }
+
+        /* --- IMÁGENES DE AJOLOTES AL FONDO (IZQUIERDA) --- */
+        .ajolotes-bg {
+            position: fixed;
+            top: 40px; 
+            left: 40px; 
+            z-index: -2; 
+            pointer-events: none; 
+        }
+
+        .ajo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px; 
+            height: auto;
+            opacity: 0; 
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-out;
+            transform: scale(0.95) translateX(-20px); 
+            filter: drop-shadow(0 0 15px var(--accent)); 
+        }
+
+        body.theme-sist .img-sist,
+        body.theme-cuid .img-cuid,
+        body.theme-hote .img-hote,
+        body.theme-meca .img-meca {
+            opacity: 0.35;
+            transform: scale(1) translateX(0);
+        }
+
+        /* --- CABECERA --- */
+        .header-container {
+            text-align: center;
+            margin-bottom: 20px;
+            z-index: 100;
+        }
+
+        .header-container h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8rem;
+            color: white;
+            text-shadow: 0 0 10px white, 0 0 20px var(--accent), 0 0 40px var(--accent);
+            margin-bottom: 15px;
+            transition: text-shadow 0.3s ease;
+            line-height: 1.4;
+        }
+
+        .header-container h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            transition: color 0.3s ease;
+        }
+
+        /* --- CARRUSEL 3D --- */
+        .carousel-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1050px;
+            height: 520px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1200px;
+        }
+
+        .card {
+            position: absolute;
+            width: 320px;
+            height: 460px;
+            background: rgba(0,0,0,0.55);
+            border: 3px solid #333; 
+            border-radius: 20px;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            transition: all 0.5s ease-in-out;
+            left: calc(50% - 160px);
+            top: calc(50% - 230px);
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .card h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #888;
+            transition: color 0.5s ease;
+        }
+
+        .corner-icon {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.2;
+            transition: opacity 0.5s ease;
+        }
+        .top-left { top: 15px; left: 15px; }
+        .bottom-right { bottom: 15px; right: 15px; }
+
+        .game-links {
+            margin-top: auto;
+            margin-bottom: auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 15;
+        }
+
+        .game-btn {
+            background: rgba(0,0,0,0.45);
+            border: 2px solid #555;
+            color: #aaa;
+            padding: 12px 10px;
+            border-radius: 12px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: .3s;
+            pointer-events: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 45px;
+        }
+
+        .coming-soon-box {
+            background: rgba(0,0,0,.45);
+            border: 3px dashed #555;
+            padding: 20px 10px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .coming-soon-box span {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.65rem;
+            color: #ffcc00;
+            display: block;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .coming-soon-box p {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        /* --- ESTADO ACTIVO --- */
+        .card.active {
+            transform: translateX(0) translateZ(120px) scale(1);
+            z-index: 10;
+            opacity: 1;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent), inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .card.active h3 {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .card.active .corner-icon { opacity: 1; }
+
+        .card.active .game-btn {
+            pointer-events: auto;
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 12px rgba(0,0,0,0.5);
+        }
+
+        .card.active .game-btn:hover {
+            transform: scale(1.05);
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        /* Botones desactivados intencionalmente */
+        .card.active .game-btn.soon-btn {
+            pointer-events: none;
+            opacity: 0.6;
+            border-color: #555;
+            color: #999;
+            box-shadow: none;
+        }
+        
+        .card.active .coming-soon-box { border-color: var(--accent); }
+
+        /* --- CLASES DE POSICIÓN (Ajustadas para 4 tarjetas) --- */
+        .card.next { transform: translateX(60%) translateZ(-120px) scale(0.8); z-index: 9; opacity: 0.4; }
+        .card.far-next { transform: translateX(0) translateZ(-300px) scale(0.6); z-index: 6; opacity: 0; }
+        .card.prev { transform: translateX(-60%) translateZ(-120px) scale(0.8); z-index: 9; opacity: 0.4; }
+
+        /* --- FLECHAS DE NAVEGACIÓN --- */
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,.45);
+            border: 3px solid var(--accent);
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 100;
+            transition: .3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 12px var(--accent);
+        }
+
+        .arrow:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .arrow.left { left: 10px; }
+        .arrow.right { right: 10px; }
+    </style>
+</head>
+<body class="theme-sist">
+
+    <div class="stars"></div>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="ajolotes-bg">
+        <img src="ajoinge.png" class="ajo-img img-sist" alt="Sistemas Informáticos">
+        <img src="ajoenfer.png" class="ajo-img img-cuid" alt="Cuidado de Personas Dependientes">
+        <img src="ajohotel.png" class="ajo-img img-hote" alt="Hoteles y Restaurantes">
+        <img src="ajomeca.png" class="ajo-img img-meca" alt="Mecatrónica">
+    </div>
+
+    <header class="header-container">
+        <h1>APRENDIZAJE GUIADO<br>TASKTUVCH</h1>
+        <h2>SELECCIONA TU CARRERA</h2>
+    </header>
+
+    <div class="carousel-wrapper">
+        <div class="arrow left" id="btn-left">&#10094;</div>
+        
+        <div class="carousel" id="carousel">
+            
+            <div class="card active" data-theme="theme-sist">
+                <span class="corner-icon top-left">💻</span>
+                <h3>SISTEMAS INFORMATICOS</h3>
+                <div class="game-links">
+                    <a href="rutaSI.html" class="game-btn">Conceptos básicos POO</a>
+                    <a href="#" class="game-btn soon-btn">Bases de Datos (Próximamente)</a>
+                    <a href="#" class="game-btn soon-btn">Ciberseguridad (Próximamente)</a>
+                </div>
+                <span class="corner-icon bottom-right">💻</span>
+            </div>
+
+            <div class="card next" data-theme="theme-cuid">
+                <span class="corner-icon top-left">❤️</span>
+                <h3>CUIDADOS DE PERSONAS</h3>
+                <div class="game-links">
+                    <a href="rutaCU.html" class="game-btn">Conceptos básicos de cuidados</a>
+                    <a href="#" class="game-btn soon-btn">Primeros Auxilios (Próximamente)</a>
+                    <a href="#" class="game-btn soon-btn">Soporte Geriátrico (Próximamente)</a>
+                </div>
+                <span class="corner-icon bottom-right">❤️</span>
+            </div>
+
+            <div class="card far-next" data-theme="theme-hote">
+                <span class="corner-icon top-left">🍽️</span>
+                <h3>HOTELES Y RESTAURANTES</h3>
+                <div class="game-links">
+                    <a href="rutaHT.html" class="game-btn">Fundamentos de hostelería</a>
+                    <a href="#" class="game-btn soon-btn">Gestión de Reservas (Próximamente)</a>
+                    <a href="#" class="game-btn soon-btn">Etiqueta de Servicio (Próximamente)</a>
+                </div>
+                <span class="corner-icon bottom-right">🍽️</span>
+            </div>
+
+            <div class="card prev" data-theme="theme-meca">
+                <span class="corner-icon top-left">🤖</span>
+                <h3>MECATRONICA</h3>
+                <div class="game-links">
+                    <div class="coming-soon-box">
+                        <span>(PROXIMAMENTE)</span>
+                        <p>Contenido en desarrollo...</p>
+                    </div>
+                </div>
+                <span class="corner-icon bottom-right">🤖</span>
+            </div>
+
+        </div>
+
+        <div class="arrow right" id="btn-right">&#10095;</div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DEL CARRUSEL Y TEMAS (Ajustado a 4 opciones) ---
+        const classes = ['active', 'next', 'far-next', 'prev'];
+        const cards = document.querySelectorAll('.card');
+        const body = document.body;
+        let currentMatrixColor = '#00e5ff'; // Inicia con el color de sistemas
+
+        document.getElementById('btn-right').addEventListener('click', () => {
+            classes.unshift(classes.pop());
+            updateCards();
+        });
+
+        document.getElementById('btn-left').addEventListener('click', () => {
+            classes.push(classes.shift());
+            updateCards();
+        });
+
+        function updateCards() {
+            const positionClasses = ['active', 'next', 'far-next', 'prev'];
+            
+            cards.forEach((card, index) => {
+                card.classList.remove(...positionClasses);
+                card.classList.add(classes[index]);
+
+                if (classes[index] === 'active') {
+                    const newTheme = card.getAttribute('data-theme');
+                    body.className = ''; 
+                    body.classList.add(newTheme); 
+                    
+                    setTimeout(() => {
+                        currentMatrixColor = getComputedStyle(document.body).getPropertyValue('--accent').trim();
+                    }, 50);
+                }
+            });
+        }
+
+        // --- 2. LÓGICA DEL EFECTO MATRIX BINARIO ---
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 350; 
+        canvas.height = window.innerHeight;
+
+        const binaryChars = '01'; 
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = Math.random() * canvas.height / fontSize; 
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = currentMatrixColor; 
+            ctx.font = fontSize + 'px "Press Start 2P", monospace'; 
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = binaryChars.charAt(Math.floor(Math.random() * binaryChars.length));
+                
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.95) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        window.addEventListener('resize', () => {
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

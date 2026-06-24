@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - Simulador de Platillos</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body{
+        background: #1a0505;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #5a1010 0%, #0f0202 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 128, 128, 0.8) 1px, transparent 1px);
+        background-size: 45px 45px;
+        opacity: .12;
+        z-index: -2;
+    }
+
+    /* BARRA SUPERIOR GRID */
+    .top-bar{
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 15px 30px;
+        z-index: 10;
+    }
+
+    .btn-volver{
+        justify-self: start;
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 12px #ff4444;
+    }
+
+    .btn-volver:hover{
+        transform: scale(1.05);
+        background: rgba(255,68,68,.15);
+    }
+
+    .center-title{
+        text-align: center;
+    }
+
+    .title{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.8rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff2222;
+        margin: 0;
+    }
+
+    .subtitle{
+        margin-top: 5px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: 0.8rem;
+        display: block;
+    }
+
+    .hud{
+        justify-self: end;
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box{
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff4444;
+        border-radius: 15px;
+        padding: 8px 15px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .hud-box h3{
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: .6rem;
+        margin-bottom: 5px;
+    }
+
+    .hud-box p{
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.2rem;
+        color: #ffd600;
+        margin: 0;
+    }
+
+    /* PANTALLA DE INICIO */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #0f0202;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.2rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff2222, 0 0 40px #ff2222;
+        margin-bottom: 10px;
+    }
+
+    .instrucciones {
+        background: rgba(0,0,0,.55);
+        border: 3px solid #ff4444;
+        border-radius: 20px;
+        padding: 25px 35px;
+        width: 90%;
+        max-width: 700px;
+        margin-bottom: 30px;
+        box-shadow: 0 0 15px rgba(255,68,68,.3);
+    }
+
+    .instrucciones p {
+        font-size: 1.15rem;
+        margin-bottom: 25px;
+        line-height: 1.7rem;
+    }
+
+    .menu-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        max-width: 550px;
+        margin: 0 auto;
+    }
+
+    .control-box {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: 0.8rem;
+        line-height: 1.2rem;
+    }
+
+    .key {
+        padding: 8px 12px;
+        border: 2px solid #ff4444;
+        border-radius: 8px;
+        background: rgba(0,0,0,.45);
+        min-width: 45px;
+        text-align: center;
+        color: white;
+    }
+
+    /* ÁREA DE JUEGO */
+    #game-area {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    #panel-card {
+        background: rgba(0,0,0,0.7);
+        border: 3px solid #ff4444;
+        border-radius: 15px;
+        padding: 20px;
+        width: 450px;
+        text-align: center;
+        position: absolute;
+        top: 25px;
+        box-shadow: 0 0 20px rgba(255,68,68,0.5);
+        z-index: 5;
+    }
+
+    #panel-card-label {
+        font-family: 'Press Start 2P', cursive;
+        color: #ffd600;
+        font-size: 0.65rem;
+        margin-bottom: 10px;
+    }
+
+    #panel-text {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: white;
+        line-height: 1.8rem;
+    }
+
+    /* ANIMACIÓN FLOTAR AJOLOTE */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .axolote-img {
+        width: 150px;
+        position: absolute;
+        top: 145px;
+        z-index: 1;
+        filter: drop-shadow(0 0 15px #ff2222);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* PANELES SIMON SAYS (AHORA GRID DE 6) */
+    #containers-area {
+        width: 100%;
+        position: absolute;
+        bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 0 30px;
+        max-width: 800px;
+    }
+
+    .inspection-zone {
+        height: 85px;
+        border-radius: 15px;
+        border: 4px solid;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: rgba(0,0,0,0.7);
+        cursor: pointer;
+        opacity: 0.4; 
+        transition: opacity 0.1s, transform 0.1s;
+    }
+
+    .zone-red { border-color: #ff1744; color: #ff1744; } 
+    .zone-green { border-color: #00e676; color: #00e676; } 
+    .zone-blue { border-color: #29b6f6; color: #29b6f6; } 
+
+    .inspection-zone.active {
+        opacity: 1 !important;
+        transform: scale(1.05);
+        box-shadow: 0 0 25px currentColor;
+    }
+
+    .inspection-zone h3 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.65rem;
+        margin-bottom: 8px;
+    }
+
+    .inspection-zone p {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: white;
+        line-height: 1.1rem;
+    }
+
+    /* OVERLAY FINAL */
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.94);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999;
+    }
+
+    .overlay h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2rem;
+        text-align: center;
+        color: #d9e3ea;
+        margin-bottom: 25px;
+    }
+
+    .play-btn {
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        background: #ff2222;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+    }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="menu-inicio" id="menuInicio">
+    <h1 class="title">SIMULADOR DE RECETAS</h1>
+    <div class="subtitle">ESTÁNDARES HOTELES Y RESTAURANTES</div>
+    
+    <div class="instrucciones">
+        <p>¡Es hora de cocinar! Arriba se te indicará qué platillo vamos a preparar. Observa la secuencia en la que brillan los ingredientes de abajo y repítela sin fallar.</p>
+        <p style="color: #ffd600; font-size: 0.9rem; text-align: center; margin-top: -10px;">¡CUIDADO! Hay ingredientes trampa que no pertenecen a la receta.</p>
+        
+        <div class="menu-controls">
+            <div class="control-box">
+                <div class="key">1 - 6</div>
+                <span>USA LOS NÚMEROS DE TU TECLADO O HAZ CLIC</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="play-btn" onclick="comenzarJuego()">Iniciar Práctica</button>
+</div>
+
+<div class="top-bar">
+    <button class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+    <div class="center-title">
+        <h1 class="title">COCINA PRINCIPAL</h1>
+        <span class="subtitle">SECUENCIAS DE PREPARACIÓN</span>
+    </div>
+
+    <div class="hud">
+        <div class="hud-box">
+            <h3>NIVEL</h3>
+            <p id="timer">Platillo 1</p>
+        </div>
+        <div class="hud-box">
+            <h3>EFICIENCIA</h3>
+            <p id="score">0</p>
+        </div>
+    </div>
+</div>
+
+<div id="game-area">
+    <div id="panel-card">
+        <div id="panel-card-label" id="estado-recorrido">ESTADO DE PREPARACIÓN</div>
+        <div id="panel-text">¡Presta atención a la secuencia!</div>
+    </div>
+
+    <img src="chef.png" class="axolote-img" id="axolote-img">
+
+    <div id="containers-area">
+        <div class="inspection-zone zone-red" id="zone-0" onclick="registrarClicUsuario(0)">
+            <h3>TECLA 1</h3>
+            <p id="zone-0-text">Opción 1</p>
+        </div>
+        <div class="inspection-zone zone-green" id="zone-1" onclick="registrarClicUsuario(1)">
+            <h3>TECLA 2</h3>
+            <p id="zone-1-text">Opción 2</p>
+        </div>
+        <div class="inspection-zone zone-blue" id="zone-2" onclick="registrarClicUsuario(2)">
+            <h3>TECLA 3</h3>
+            <p id="zone-2-text">Opción 3</p>
+        </div>
+        <div class="inspection-zone zone-red" id="zone-3" onclick="registrarClicUsuario(3)">
+            <h3>TECLA 4</h3>
+            <p id="zone-3-text">Opción 4</p>
+        </div>
+        <div class="inspection-zone zone-green" id="zone-4" onclick="registrarClicUsuario(4)">
+            <h3>TECLA 5</h3>
+            <p id="zone-4-text">Opción 5</p>
+        </div>
+        <div class="inspection-zone zone-blue" id="zone-5" onclick="registrarClicUsuario(5)">
+            <h3>TECLA 6</h3>
+            <p id="zone-5-text">Opción 6</p>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <h1 id="finalTitle">¡RECETA ARRUINADA!</h1>
+    <p style="font-size:1.5rem; margin-bottom:30px;">Eficiencia Alcanzada: <span id="finalScore" style="color:#ffd600">0</span></p>
+    <button class="play-btn" onclick="location.reload()">Nuevo Turno</button>
+</div>
+
+<script>
+    // BASE DE DATOS: 8 PLATILLOS (Incluyen ingredientes reales + distractores trampa)
+    const platillos = [
+        {
+            nombre: "Ceviche Clásico",
+            opciones: ["Pescado en Cubos", "Jugo de Limón", "Cebolla Morada", "Cilantro", "Aguacate", "Clamato"],
+            secuencia: [0, 1, 2, 3] // Aguacate y Clamato son trampas
+        },
+        {
+            nombre: "Margarita Tradicional",
+            opciones: ["Tequila", "Licor Naranja", "Jugo Limón", "Sal (Escarcha)", "Jarabe Natural", "Refresco"],
+            secuencia: [3, 0, 1, 2] // Jarabe y Refresco son trampas
+        },
+        {
+            nombre: "Huevos Benedictinos",
+            opciones: ["English Muffin", "Lomo Canadiense", "Huevo Poché", "Salsa Holandesa", "Tocino", "Salsa Roja"],
+            secuencia: [0, 1, 2, 3] // Tocino y Salsa Roja son trampas
+        },
+        {
+            nombre: "Pasta Carbonara",
+            opciones: ["Pasta al Dente", "Guanciale", "Yema de Huevo", "Pecorino", "Crema Batida", "Ajo Picado"],
+            secuencia: [1, 0, 2, 3] // Crema y Ajo son trampas fatales en Italia
+        },
+        {
+            nombre: "Club Sándwich",
+            opciones: ["Pan Tostado", "Pollo y Tocino", "Lechuga y Tomate", "Mayonesa", "Huevo Frito", "Jamón de Pavo"],
+            secuencia: [0, 3, 1, 2] // Huevo y Jamón extra son trampas
+        },
+        {
+            nombre: "Tiramisú",
+            opciones: ["Soletas", "Café Espresso", "Mascarpone", "Cacao en Polvo", "Crema Batida", "Licor de Café"],
+            secuencia: [0, 1, 2, 3] // Crema y Licor son trampas en la receta clásica
+        },
+        {
+            nombre: "Guacamole de Mesa",
+            opciones: ["Aguacate", "Jugo de Limón", "Cebolla y Tomate", "Cilantro", "Aceite de Oliva", "Ajo en Polvo"],
+            secuencia: [0, 1, 2, 3] // Aceite y Ajo son trampas
+        },
+        {
+            nombre: "Risotto de Champiñones",
+            opciones: ["Arroz Arborio", "Caldo Caliente", "Champiñones", "Queso Parmesano", "Arroz Blanco", "Crema"],
+            secuencia: [0, 2, 1, 3] // Arroz blanco y Crema son trampas
+        }
+    ];
+
+    let nivelActual = 0; 
+    let subNivelActual = 1; 
+    let secuenciaUsuario = [];
+    let score = 0;
+    let juegoTerminado = false;
+    let juegoIniciado = false;
+    let turnoDelUsuario = false;
+
+    const panelText = document.getElementById('panel-text');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // 6 Tonos distintos para los 6 botones
+    const tonosFrecuencia = [261.6, 329.6, 392.0, 440.0, 493.88, 523.25]; 
+
+    function comenzarJuego() {
+        document.getElementById('menuInicio').style.display = 'none';
+        juegoIniciado = true;
+        nivelActual = 0;
+        cargarPlatillo();
+    }
+
+    function regresarAlMenu() { window.location.href = 'vista.html'; }
+
+    function cargarPlatillo() {
+        if (nivelActual >= platillos.length) {
+            finalizar("¡TODOS LOS PLATILLOS LISTOS!");
+            return;
+        }
+
+        subNivelActual = 1;
+        const platillo = platillos[nivelActual];
+        
+        document.getElementById('timer').innerText = "Platillo " + (nivelActual + 1);
+        panelText.innerHTML = `Vamos a preparar:<br><span style="color:#ffd600">${platillo.nombre}</span>`;
+        
+        // Rellenar los 6 botones con los ingredientes (reales y trampas)
+        for(let i=0; i<6; i++){
+            document.getElementById(`zone-${i}-text`).innerText = platillo.opciones[i];
+        }
+
+        iniciarRonda();
+    }
+
+    function iniciarRonda() {
+        secuenciaUsuario = [];
+        turnoDelUsuario = false;
+        setTimeout(reproducirSecuenciaReceta, 1000);
+    }
+
+    function reproducirSecuenciaReceta() {
+        let platillo = platillos[nivelActual];
+        let secuenciaActiva = platillo.secuencia.slice(0, subNivelActual);
+        
+        let i = 0;
+        const intervaloVisual = setInterval(() => {
+            if (juegoTerminado) { clearInterval(intervaloVisual); return; }
+            
+            iluminarEstacionTrabajo(secuenciaActiva[i]);
+            i++;
+            
+            if (i >= secuenciaActiva.length) {
+                clearInterval(intervaloVisual);
+                setTimeout(() => {
+                    turnoDelUsuario = true;
+                }, 500);
+            }
+        }, 600);
+    }
+
+    function iluminarEstacionTrabajo(indexZona) {
+        const zonaElemento = document.getElementById(`zone-${indexZona}`);
+        if (!zonaElemento) return;
+
+        zonaElemento.classList.add('active');
+        playBipSound(tonosFrecuencia[indexZona]);
+
+        setTimeout(() => {
+            zonaElemento.classList.remove('active');
+        }, 300);
+    }
+
+    function playBipSound(frecuencia) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(frecuencia, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function registrarClicUsuario(indexZona) {
+        if (!juegoIniciado || juegoTerminado || !turnoDelUsuario) return;
+
+        iluminarEstacionTrabajo(indexZona);
+        secuenciaUsuario.push(indexZona);
+
+        const platillo = platillos[nivelActual];
+        const secuenciaActiva = platillo.secuencia.slice(0, subNivelActual);
+        const pasoActual = secuenciaUsuario.length - 1;
+
+        if (secuenciaUsuario[pasoActual] !== secuenciaActiva[pasoActual]) {
+            finalizar("¡ERROR DE PREPARACIÓN!");
+            return;
+        }
+
+        if (secuenciaUsuario.length === secuenciaActiva.length) {
+            turnoDelUsuario = false;
+            
+            if (subNivelActual === platillo.secuencia.length) {
+                score += 25;
+                document.getElementById('score').innerText = score;
+                nivelActual++;
+                
+                panelText.innerHTML = "¡Platillo Perfecto!<br>Sirviendo...";
+                setTimeout(cargarPlatillo, 1500);
+            } else {
+                subNivelActual++;
+                setTimeout(iniciarRonda, 1000);
+            }
+        }
+    }
+
+    // Mapeo de números del 1 al 6
+    window.addEventListener('keydown', (e) => {
+        if (!turnoDelUsuario || juegoTerminado) return;
+        if (e.key === '1') registrarClicUsuario(0);
+        if (e.key === '2') registrarClicUsuario(1);
+        if (e.key === '3') registrarClicUsuario(2);
+        if (e.key === '4') registrarClicUsuario(3);
+        if (e.key === '5') registrarClicUsuario(4);
+        if (e.key === '6') registrarClicUsuario(5);
+    });
+
+    function finalizar(mensajeTitulo) {
+        juegoTerminado = true;
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('finalTitle').innerText = mensajeTitulo;
+        document.getElementById('finalScore').innerText = score;
+    }
+</script>
+</body>
+</html>

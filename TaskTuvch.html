@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TASKTUVCH - NEON ARCADE EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-black: #080802;
+            --card-black: #0f0f02;
+            --neon-yellow: #ffff00;
+            --neon-yellow-dim: #b3b300;
+            --neon-yellow-glow: 0 0 8px #ffff00, 0 0 15px rgba(255, 255, 0, 0.6);
+            --text-white: #ffffff;
+            --text-gray: #aaaa77;
+            --border-arcade: 2px solid #ffff00;
+            
+            /* Colores de tareas */
+            --prioridad-alta: #ff3366;
+            --prioridad-baja: #00e5ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #141404 0%, #050501 100%),
+                linear-gradient(rgba(255, 255, 0, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 0, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 25px 25px, 25px 25px;
+            color: var(--text-white);
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        .view {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes slightGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 0, 0.4); border-color: rgba(255, 255, 0, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(255, 255, 0, 0.8); border-color: rgba(255, 255, 0, 1); }
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0.3; }
+        }
+
+        .image-placeholder-container {
+            width: 380px;
+            height: 380px;
+            border: none;
+            box-shadow: none;
+            background: radial-gradient(circle, rgba(255, 255, 0, 0.12) 0%, rgba(255, 255, 0, 0.03) 50%, transparent 70%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+            animation: floatAnimation 4s ease-in-out infinite;
+        }
+
+        .image-placeholder-container img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.35));
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .auth-left-panel {
+            flex: 1;
+            background: linear-gradient(180deg, #121203 0%, #1a1a05 100%);
+            border-right: 3px double var(--neon-yellow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .auth-left-panel h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            color: var(--neon-yellow);
+            text-shadow: var(--neon-yellow-glow);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+
+        .auth-left-panel p {
+            font-size: 1.1rem;
+            color: var(--text-white);
+            max-width: 450px;
+            letter-spacing: 1px;
+            border: 1px dashed rgba(255, 255, 0, 0.3);
+            padding: 15px;
+            background-color: rgba(18, 18, 3, 0.8);
+        }
+
+        .auth-right-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .arcade-card {
+            background-color: var(--card-black);
+            border: var(--border-arcade);
+            box-shadow: var(--neon-yellow-glow);
+            padding: 40px;
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+        }
+
+        .arcade-card h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-yellow);
+            text-align: center;
+            font-size: 1.8rem;
+            text-shadow: var(--neon-yellow-glow);
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        .arcade-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--neon-yellow-dim);
+            margin-bottom: 25px;
+        }
+
+        .arcade-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            transition: all 0.2s;
+        }
+
+        .arcade-tab.active {
+            color: var(--neon-yellow);
+            border: var(--border-arcade);
+            border-bottom: 2px solid var(--card-black);
+            background-color: var(--card-black);
+            margin-bottom: -2px;
+            text-shadow: var(--neon-yellow-glow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            color: var(--neon-yellow);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .arcade-input, select.arcade-input {
+            width: 100%;
+            background-color: #000000;
+            border: 1px solid var(--neon-yellow-dim);
+            padding: 12px;
+            color: var(--text-white);
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+            color-scheme: dark;
+        }
+
+        .arcade-input:focus {
+            border-color: var(--neon-yellow);
+            box-shadow: var(--neon-yellow-glow);
+        }
+
+        .arcade-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            color: var(--text-white);
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .arcade-checkbox input {
+            accent-color: var(--neon-yellow);
+            width: 18px;
+            height: 18px;
+        }
+
+        .emoji-img {
+            width: 22px;
+            height: 22px;
+            vertical-align: middle;
+            margin-left: 5px;
+            object-fit: contain;
+        }
+
+        .btn-arcade {
+            width: 100%;
+            background-color: var(--neon-yellow);
+            color: var(--bg-black);
+            border: none;
+            padding: 14px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--neon-yellow-glow);
+            text-transform: uppercase;
+        }
+
+        .btn-arcade:hover {
+            background-color: var(--bg-black);
+            color: var(--neon-yellow);
+            border: 1px solid var(--neon-yellow);
+            box-shadow: 0 0 25px var(--neon-yellow);
+        }
+
+        /* --- DASHBOARD --- */
+        #dashboard-view {
+            flex-direction: column;
+            padding: 25px;
+            gap: 20px;
+            position: relative;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 2px dashed var(--neon-yellow-dim);
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        .dash-logo h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-yellow);
+            font-size: 2.5rem;
+            text-shadow: var(--neon-yellow-glow);
+            letter-spacing: 2px;
+        }
+
+        .dash-logo p {
+            color: var(--text-white);
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Botón derecho */
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-header-arcade {
+            background-color: var(--bg-black);
+            color: var(--neon-yellow);
+            border: 2px solid var(--neon-yellow);
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            animation: slightGlow 3s infinite;
+        }
+
+        .btn-header-arcade:hover {
+            background-color: var(--neon-yellow);
+            color: var(--bg-black);
+            animation: none;
+            box-shadow: var(--neon-yellow-glow);
+        }
+
+        .dash-main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            margin-top: 20px;
+        }
+
+        .grid-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .arcade-panel {
+            background-color: var(--card-black);
+            border: var(--border-arcade);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 5px rgba(255,255,0,0.1);
+        }
+
+        .panel-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--neon-yellow-dim);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .panel-title-bar h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-yellow);
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(255,255,0,0.5);
+        }
+
+        .action-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-btn {
+            background-color: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .panel-btn:hover {
+            background-color: var(--neon-yellow);
+            color: var(--bg-black);
+        }
+
+        .interactive-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .interactive-item {
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px dashed var(--neon-yellow-dim);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 5px solid transparent;
+        }
+
+        .interactive-item:hover, .interactive-item.active-item {
+            border-style: solid;
+            border-color: var(--neon-yellow);
+            background-color: rgba(255, 255, 0, 0.08);
+            box-shadow: inset 0 0 8px rgba(255,255,0,0.2);
+        }
+
+        .interactive-item.task-completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+            border-color: #555;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .item-meta {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* BADGE TAREA VENCIDA */
+        .overdue-badge {
+            color: #ff3366;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px #ff3366;
+            animation: blinker 1.5s linear infinite;
+            cursor: help;
+            margin-bottom: 3px;
+            display: block;
+        }
+
+        /* CALENDARIO ESTILOS */
+        .mini-calendar { flex: 1; }
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--text-white);
+            border: 1px solid rgba(255,255,0,0.2);
+            padding: 4px 10px;
+        }
+        .calendar-nav span { cursor: pointer; color: var(--neon-yellow); font-weight: bold; }
+        .calendar-nav span:hover { text-shadow: var(--neon-yellow-glow); }
+
+        .calendar-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .calendar-header-cell {
+            color: var(--neon-yellow);
+            font-weight: bold;
+            border-bottom: 1px solid var(--neon-yellow-dim);
+            padding-bottom: 4px;
+        }
+        .calendar-day-cell {
+            padding: 5px;
+            color: var(--text-white);
+            min-height: 35px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .calendar-day-cell:hover {
+            background-color: rgba(255,255,0,0.15);
+        }
+        .calendar-day-cell.dim { color: var(--text-gray); opacity: 0.5; }
+        .calendar-day-cell.today { background-color: rgba(255,255,0,0.2); font-weight: bold; border: 1px solid var(--neon-yellow); }
+        
+        .dots-container { display: flex; gap: 2px; margin-top: 3px; }
+        .task-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .dot-alta { background-color: var(--prioridad-alta); box-shadow: 0 0 5px var(--prioridad-alta); }
+        .dot-baja { background-color: var(--prioridad-baja); box-shadow: 0 0 5px var(--prioridad-baja); }
+
+        /* DETALLES */
+        .detail-display { flex: 1; }
+        .detail-meta-label { font-size: 0.85rem; color: var(--neon-yellow-dim); text-transform: uppercase; margin-bottom: 4px; }
+        .detail-main-title { font-size: 1.3rem; color: var(--text-white); border-bottom: 1px dashed var(--neon-yellow-dim); padding-bottom: 8px; margin-bottom: 5px; }
+        .detail-meta-info { font-size: 0.9rem; color: var(--text-gray); margin-bottom: 15px; }
+        .detail-textarea { width: 100%; background-color: #000000; border: 1px solid var(--neon-yellow-dim); padding: 15px; color: var(--text-white); font-size: 1rem; resize: none; flex: 1; margin-bottom: 15px; outline: none; }
+        .detail-textarea:focus { border-color: var(--neon-yellow); }
+        .detail-footer-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-detail-action { flex: 1; padding: 8px; border: 1px solid var(--neon-yellow); background-color: transparent; color: var(--neon-yellow); font-size: 0.85rem; cursor: pointer; text-transform: uppercase; min-width: 80px; transition: all 0.2s;}
+        .btn-detail-action.primary-action { background-color: var(--neon-yellow); color: var(--bg-black); font-weight: bold; }
+        .btn-detail-action:hover { box-shadow: var(--neon-yellow-glow); background-color: rgba(255,255,0,0.1); }
+        
+        /* Boton Editar Activo */
+        .btn-active-glow {
+            background-color: var(--neon-yellow) !important;
+            color: var(--bg-black) !important;
+            font-weight: bold;
+            box-shadow: var(--neon-yellow-glow) !important;
+        }
+
+        /* MODALES OVERLAYS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background-color: var(--card-black);
+            border: var(--border-arcade);
+            box-shadow: var(--neon-yellow-glow);
+            padding: 30px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .modal-card h3 { color: var(--neon-yellow); text-align: center; font-family: 'Orbitron', sans-serif; text-transform: uppercase; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <section id="login-view" class="view active">
+        <div class="auth-wrapper">
+            <div class="auth-left-panel">
+                <div class="image-placeholder-container">
+                    <img src="axolotl.png" alt="Axolotl">
+                </div>
+                <h1>TASKTUVCH</h1>
+                <p>Aprende, organiza y juega en la laguna de Xochimilco. Tu axolote te acompaña en cada tarea.</p>
+            </div>
+            <div class="auth-right-panel">
+                <div class="arcade-card">
+                    <h2>TASKTUVCH</h2>
+                    <div class="arcade-tabs">
+                        <div class="arcade-tab active" onclick="switchTab('login')">Iniciar sesión</div>
+                        <div class="arcade-tab" onclick="switchTab('register')">Registrarse</div>
+                    </div>
+                    <form id="login-form" onsubmit="executeLogin(event)">
+                        <div class="form-group">
+                            <label>Usuario</label>
+                            <input type="text" id="login-user" class="arcade-input" placeholder="Tu usuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="login-pass" class="arcade-input" placeholder="........" required>
+                        </div>
+                        <label class="arcade-checkbox">
+                            <input type="checkbox" required>
+                            Acepto vender mi alma al TUVCH <img src="ajo6.png" class="emoji-img" alt="huellas">
+                        </label>
+                        <button type="submit" class="btn-arcade">Iniciar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="register-view" class="view">
+        <div class="auth-wrapper">
+            <div class="auth-left-panel">
+                <div class="image-placeholder-container">
+                    <img src="axolotl.png" alt="Axolotl">
+                </div>
+                <h1>TASKTUVCH</h1>
+                <p>Aprende, organiza y juega en la laguna de Xochimilco. Tu axolote te acompaña en cada tarea.</p>
+            </div>
+            <div class="auth-right-panel">
+                <div class="arcade-card">
+                    <h2>TASKTUVCH</h2>
+                    <div class="arcade-tabs">
+                        <div class="arcade-tab" onclick="switchTab('login')">Iniciar sesión</div>
+                        <div class="arcade-tab active" onclick="switchTab('register')">Registrarse</div>
+                    </div>
+                    <form id="register-form" onsubmit="executeRegister(event)">
+                        <div class="form-group">
+                            <label>Nuevo Usuario</label>
+                            <input type="text" id="register-user" class="arcade-input" placeholder="Ej. xaddi_dev" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="register-pass" class="arcade-input" placeholder="........" required>
+                        </div>
+                        <label class="arcade-checkbox">
+                            <input type="checkbox" required>
+                            Acepto vender mi alma al TUVCH <img src="ajo6.png" class="emoji-img" alt="huellas">
+                        </label>
+                        <button type="submit" class="btn-arcade">Registrar Usuario</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard-view" class="view">
+        <header class="dash-header">
+            <div class="dash-logo">
+                <h1>TASKTUVCH</h1>
+                <p id="header-greeting">Hola, Usuario 🌸</p>
+            </div>
+            
+            <div class="header-buttons">
+                <button class="btn-header-arcade" onclick="abrirJuegos()">🎮 Jugar</button>
+                <button class="btn-header-arcade" onclick="abrirZeus()">⚡ Zeus</button>
+                <button class="btn-header-arcade" onclick="abrirAprender()">✨ Aprender</button>
+            </div>
+
+            <div class="header-right">
+                <button class="btn-header-arcade" onclick="logout()">Volver</button>
+            </div>
+        </header>
+
+        <div class="dash-main-grid">
+            
+            <div class="grid-column">
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>MIS CLASES</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="openClassModal()">+ Añadir</button>
+                            <button class="panel-btn" onclick="deleteClass()">Borrar</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="classes-list"></div>
+                </div>
+
+                <div class="arcade-panel mini-calendar">
+                    <div class="panel-title-bar">
+                        <h3>CALENDARIO</h3>
+                    </div>
+                    <div class="calendar-nav">
+                        <span onclick="changeMonth(-1)">&#9664;</span>
+                        <span id="calendar-month-year">May 2026</span>
+                        <span onclick="changeMonth(1)">&#9654;</span>
+                    </div>
+                    <div class="calendar-days-grid" id="calendar-grid"></div>
+                </div>
+            </div>
+
+            <div class="grid-column">
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>TAREAS PRINCIPALES (ALTA)</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="openTaskModal('Alta')">+ Añadir</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="principal-list"></div>
+                </div>
+
+                <div class="arcade-panel" style="flex: 1;">
+                    <div class="panel-title-bar">
+                        <h3>TAREAS SECUNDARIAS (BAJA)</h3>
+                        <div class="action-container">
+                            <button class="panel-btn" onclick="openTaskModal('Baja')">+ Añadir</button>
+                        </div>
+                    </div>
+                    <div class="interactive-list" id="secundaria-list"></div>
+                </div>
+            </div>
+
+            <div class="grid-column">
+                <div class="arcade-panel detail-display">
+                    <div class="panel-title-bar">
+                        <h3>DETALLES</h3>
+                    </div>
+                    <div class="detail-meta-label" id="detail-status">Estado: ---</div>
+                    <input type="text" class="arcade-input detail-main-title" id="detail-title" value="Ninguna tarea" style="background:transparent; border:none; border-bottom:1px dashed var(--neon-yellow-dim); margin-bottom: 10px;" readonly>
+                    
+                    <div class="detail-meta-info" id="detail-meta">Materia: --- | Fecha: ---</div>
+                    
+                    <textarea class="detail-textarea" id="detail-desc" placeholder="Descripción de la actividad..." readonly></textarea>
+                    
+                    <div class="detail-footer-buttons">
+                        <button class="btn-detail-action" id="btn-edit-detail" onclick="toggleEditMode()">✏️ Editar</button>
+                        <button class="btn-detail-action" onclick="saveDetails()">📝 Guardar</button>
+                        <button class="btn-detail-action primary-action" onclick="completeCurrentDetail()">✓ Completar</button>
+                        <button class="btn-detail-action" style="background: rgba(255,0,0,0.1); border-color: #ff5555; color: #ff5555;" onclick="deleteCurrentDetail()">🗑️ Borrar</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="modal-overlay" id="custom-alert-modal" style="z-index: 9999;">
+        <div class="modal-card" style="width: 380px; text-align: center; align-items: center;">
+            <h3 id="custom-alert-title" style="width: 100%;">SISTEMA</h3>
+            
+            <div id="custom-alert-img-container" style="display:none; margin-top:15px;"></div>
+            
+            <p id="custom-alert-msg" style="margin: 15px 0; color: var(--text-white); font-size: 1.1rem; line-height: 1.4;"></p>
+            <div class="modal-actions" id="custom-alert-actions" style="justify-content: center; width: 100%;">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-card">
+            <h3 id="modal-task-title">NUEVA TAREA</h3>
+            <input type="hidden" id="modal-task-priority">
+            <div class="form-group">
+                <label>NOMBRE DE LA TAREA</label>
+                <input type="text" id="modal-name" class="arcade-input" placeholder="Ej. Proyecto Final" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>MATERIA</label>
+                <select id="modal-subject" class="arcade-input"></select>
+            </div>
+            <div class="form-group">
+                <label>FECHA (YYYY-MM-DD)</label>
+                <input type="date" id="modal-date" class="arcade-input">
+            </div>
+            <div class="form-group">
+                <label>DESCRIPCIÓN</label>
+                <textarea id="modal-desc-input" class="arcade-input" style="height: 80px; resize: none;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-arcade" style="flex: 1;" onclick="saveNewTask()">GUARDAR</button>
+                <button class="btn-arcade" style="flex: 1; background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow);" onclick="closeModals()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="class-modal">
+        <div class="modal-card">
+            <h3>AÑADIR CLASE</h3>
+            <div class="form-group">
+                <label>NOMBRE DE LA CLASE</label>
+                <input type="text" id="modal-class-name" class="arcade-input" placeholder="Ej. Redes Informáticas" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>COLOR</label>
+                <select id="modal-class-color" class="arcade-input">
+                    <option value="#FFF59D">🟡 Amarillo S</option> //shinyyyy por la marideidadxd //
+                    <option value="#f48fb1">🌸 Rosa M</option> //machista por la vergera de la michelle xd //
+                    <option value="#FFCDD2">🔴 Rojo L</option> //lesbiana por la enfermedad de ximena xd //
+                    <option value="#C8E6C9">🟢 Verde M</option> //mandilon por el puñetas del sebas//
+                    <option value="#B3E5FC">🔵 Azul X</option> //Xplosion por el kevin levin//
+                    <option value="#E1BEE7">🟣 Morado M</option> //monkey por el bueno del oswaldiño//
+                    <option value="#FFE0B2">🟠 Naranja M</option> //mikimotors adicto a los travestis xd//
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-arcade" style="flex: 1;" onclick="saveNewClass()">CREAR</button>
+                <button class="btn-arcade" style="flex: 1; background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow);" onclick="closeModals()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // SISTEMA DE ALERTAS CUSTOM (Soporta Imágenes y Callback)
+        // ==========================================
+        function showArcadeAlert(msg, title = "ALERTA DEL SISTEMA", imgSrc = null, onCloseCallback = null) {
+            document.getElementById('custom-alert-title').innerText = title;
+            document.getElementById('custom-alert-msg').innerText = msg;
+            
+            const imgContainer = document.getElementById('custom-alert-img-container');
+            if(imgSrc) {
+                imgContainer.innerHTML = `<img src="${imgSrc}" style="max-width: 140px; border-radius: 10px; filter: drop-shadow(0 0 10px var(--neon-yellow));">`;
+                imgContainer.style.display = "block";
+            } else {
+                imgContainer.innerHTML = '';
+                imgContainer.style.display = "none";
+            }
+
+            const actions = document.getElementById('custom-alert-actions');
+            actions.innerHTML = `<button class="btn-arcade" id="btn-alert-ok">ACEPTAR</button>`;
+            
+            document.getElementById('btn-alert-ok').onclick = () => {
+                closeArcadeAlert();
+                if(onCloseCallback) onCloseCallback(); // Ejecuta una función secundaria si existe
+            };
+            
+            document.getElementById('custom-alert-modal').classList.add('active');
+        }
+
+        function showArcadeConfirm(msg, title, onConfirm) {
+            document.getElementById('custom-alert-title').innerText = title;
+            document.getElementById('custom-alert-msg').innerText = msg;
+            document.getElementById('custom-alert-img-container').style.display = "none";
+            
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = "btn-arcade";
+            btnConfirm.innerText = "SÍ, DALE";
+            btnConfirm.style.flex = "1";
+            btnConfirm.onclick = () => { closeArcadeAlert(); onConfirm(); };
+            
+            const btnCancel = document.createElement('button');
+            btnCancel.className = "btn-arcade";
+            btnCancel.style = "flex: 1; background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow);";
+            btnCancel.innerText = "CANCELAR";
+            btnCancel.onclick = closeArcadeAlert;
+
+            const actions = document.getElementById('custom-alert-actions');
+            actions.innerHTML = '';
+            actions.appendChild(btnConfirm);
+            actions.appendChild(btnCancel);
+            
+            document.getElementById('custom-alert-modal').classList.add('active');
+        }
+
+        function closeArcadeAlert() {
+            document.getElementById('custom-alert-modal').classList.remove('active');
+        }
+
+        // ==========================================
+        // MATEMÁTICA DE FECHAS PARA ALERTAS
+        // ==========================================
+        // Convierte el string YYYY-MM-DD a la fecha local sin bugs de zona horaria
+        function parseLocalDate(dateStr) {
+            if(!dateStr) return null;
+            const [y, m, d] = dateStr.split('-');
+            return new Date(y, m - 1, d); 
+        }
+
+        function isOverdue(dateStr) {
+            const taskD = parseLocalDate(dateStr);
+            if(!taskD) return false;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            return taskD < today; // La fecha ya pasó
+        }
+
+        function isDueTomorrow(dateStr) {
+            const taskD = parseLocalDate(dateStr);
+            if(!taskD) return false;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const diffTime = taskD - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays === 1; // Falta exactamente 1 día
+        }
+
+        function checkTaskAlerts() {
+            const tareasPendientes = db[currentUser].tareas.filter(t => !t.completada);
+            
+            const vencidas = tareasPendientes.filter(t => isOverdue(t.fecha_limite));
+            const proximas = tareasPendientes.filter(t => isDueTomorrow(t.fecha_limite));
+
+            // Si hay de ambas, las encadenamos.
+            if (vencidas.length > 0) {
+                showArcadeAlert(
+                    "AJOLOTITO tienes una o mas tareas vencidas, espero que si la hayas completado que si no...", 
+                    "¡ATENCIÓN ROJA!", 
+                    "enajolote.png", 
+                    () => {
+                        if (proximas.length > 0) {
+                            showArcadeAlert("cuidado ajolotito tienes una o varias tareas proximas a vencer", "¡CUIDADO!", "cuiajolote.png");
+                        }
+                    }
+                );
+            } else if (proximas.length > 0) {
+                showArcadeAlert("cuidado ajolotito tienes una o varias tareas proximas a vencer", "¡CUIDADO!", "cuiajolote.png");
+            }
+        }
+
+        // ==========================================
+        // BASE DE DATOS Y AUTH
+        // ==========================================
+        let db = JSON.parse(localStorage.getItem('tasktuvch_db')) || {};
+        let currentUser = null;
+
+        // Ahora esta función guarda directamente en SQL en tiempo real
+        async function guardarDatos() {
+            try {
+                await fetch('/api/guardar_datos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser, 
+                        datos: db[currentUser] 
+                    })
+                });
+                // Opcional: localStorage.setItem('tasktuvch_db', JSON.stringify(db)); 
+                // Ya no lo necesitas, pero puedes dejarlo como backup offline
+            } catch (error) {
+                console.error("Error al sincronizar con Render:", error);
+            }
+        }
+
+        function changeView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function switchTab(type) {
+            changeView(type === 'login' ? 'login-view' : 'register-view');
+        }
+
+
+        // --- NUEVO CÓDIGO CONECTADO AL BACKEND SQL ---
+        async function executeRegister(e) {
+            e.preventDefault();
+            const user = document.getElementById('register-user').value.trim();
+            const pass = document.getElementById('register-pass').value;
+            
+            try {
+                // Hacemos la petición POST al backend en Python
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === "success") {
+                    showArcadeAlert("¡Usuario registrado con éxito en la Nube!", "NUEVO JUGADOR REGISTRADO");
+                    document.getElementById('register-form').reset();
+                    switchTab('login');
+                } else {
+                    showArcadeAlert(data.message, "ERROR DE JUGADOR");
+                }
+            } catch (error) {
+                showArcadeAlert("El servidor Flask está apagado o no responde.", "ERROR DE CONEXIÓN");
+            }
+        }
+
+        async function executeLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                
+                const data = await response.json();
+
+                if (response.ok && data.status === "success") {
+                    currentUser = user;
+                    
+                    // ☁️ DESCARGAMOS LAS TAREAS DE LA NUBE
+                    const resDatos = await fetch('/api/cargar_datos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: currentUser })
+                    });
+                    const dataBD = await resDatos.json();
+                    
+                    // Cargamos la base de datos temporal con lo que trajo SQL
+                    db[currentUser] = dataBD.datos;
+
+                    document.getElementById('header-greeting').innerText = `Hola, ${user} 🎮`;
+                    document.getElementById('login-form').reset();
+                    
+                    initDashboard();
+                    changeView('dashboard-view');
+                    checkTaskAlerts();
+                } else {
+                    showArcadeAlert(data.message, "ACCESO DENEGADO");
+                }
+            } catch (error) {
+                showArcadeAlert("El servidor Flask está apagado o no responde.", "ERROR DE CONEXIÓN");
+            }
+        }
+        // --- FIN NUEVO CÓDIGO ---
+
+
+        function logout() {
+            currentUser = null;
+            changeView('login-view');
+        }
+
+        // ==========================================
+        // BOTONES SUPERIORES (ENLACES)
+        // ==========================================
+        function abrirJuegos() { window.open('juegosmc/vista.html', '_blank'); }
+        function abrirZeus() { window.open('http://127.0.0.1:5000', '_blank'); }
+        function abrirAprender() { window.open('aprendizaje/vista2.html', '_blank'); }
+
+        // ==========================================
+        // DASHBOARD LÓGICA
+        // ==========================================
+        let currentActiveClassIndex = null;
+        let currentActiveTaskId = null;
+        let calDate = new Date();
+        let isEditMode = false;
+
+        function initDashboard() {
+            renderClasses();
+            renderTaskLists();
+        }
+
+        // --- CLASES ---
+        function renderClasses() {
+            const list = document.getElementById('classes-list');
+            list.innerHTML = '';
+            
+            db[currentUser].materias.forEach((materia, index) => {
+                const item = document.createElement('div');
+                item.className = `interactive-item ${currentActiveClassIndex === index ? 'active-item' : ''}`;
+                item.style.borderLeftColor = materia.color; 
+                
+                item.onclick = () => {
+                    currentActiveClassIndex = index;
+                    renderClasses();
+                };
+                item.innerHTML = `<span>${materia.nombre}</span>`;
+                list.appendChild(item);
+            });
+            actualizarSelectMaterias();
+        }
+
+        function openClassModal() {
+            document.getElementById('modal-class-name').value = '';
+            document.getElementById('class-modal').classList.add('active');
+        }
+
+        function saveNewClass() {
+            const nombre = document.getElementById('modal-class-name').value.trim();
+            const color = document.getElementById('modal-class-color').value;
+
+            if (!nombre) return showArcadeAlert("El nombre de la materia es obligatorio.", "DATOS INCOMPLETOS");
+            if (db[currentUser].materias.some(m => m.nombre === nombre)) return showArcadeAlert("Ya tienes una clase con ese nombre.", "CLASE DUPLICADA");
+
+            db[currentUser].materias.push({ nombre, color });
+            guardarDatos();
+            closeModals();
+            renderClasses();
+        }
+
+        function deleteClass() {
+            if (currentActiveClassIndex === null) return showArcadeAlert("Selecciona una clase de la lista para poder borrarla.", "ERROR DE SELECCIÓN");
+            const materia = db[currentUser].materias[currentActiveClassIndex].nombre;
+            
+            showArcadeConfirm(
+                `Estás a punto de borrar "${materia}" y TODAS las tareas que pertenecen a esta clase.\n¿Deseas continuar?`, 
+                "PELIGRO DE BORRADO",
+                () => {
+                    db[currentUser].materias.splice(currentActiveClassIndex, 1);
+                    db[currentUser].tareas = db[currentUser].tareas.filter(t => t.materia !== materia);
+                    
+                    currentActiveClassIndex = null;
+                    clearDetails();
+                    guardarDatos();
+                    renderClasses();
+                    renderTaskLists();
+                }
+            );
+        }
+
+        function actualizarSelectMaterias() {
+            const select = document.getElementById('modal-subject');
+            select.innerHTML = '';
+            db[currentUser].materias.forEach(m => {
+                select.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`;
+            });
+        }
+
+        // --- TAREAS Y BADGE ---
+        function renderTaskLists() {
+            const listPrincipal = document.getElementById('principal-list');
+            const listSecundaria = document.getElementById('secundaria-list');
+            listPrincipal.innerHTML = '';
+            listSecundaria.innerHTML = '';
+
+            db[currentUser].tareas.forEach(t => {
+                const item = document.createElement('div');
+                item.className = `interactive-item ${t.id === currentActiveTaskId ? 'active-item' : ''} ${t.completada ? 'task-completed' : ''}`;
+                item.style.borderLeftColor = t.prioridad === 'Alta' ? 'var(--prioridad-alta)' : 'var(--prioridad-baja)';
+                item.onclick = () => selectTask(t.id);
+                
+                const icon = t.completada ? "✔ " : "";
+                
+                // Lógica del Badge Vencido
+                const overdueHtml = (!t.completada && isOverdue(t.fecha_limite)) 
+                    ? `<span class="overdue-badge" title="Esta tarea ya se venció">⚠️ Vencida</span>` 
+                    : "";
+
+                item.innerHTML = `
+                    <div class="item-header"><span>${icon}${t.nombre}</span></div>
+                    <div class="item-meta">
+                        <span>${t.materia}</span>
+                        <div style="text-align: right;">
+                            ${overdueHtml}
+                            <div>${t.fecha_limite}</div>
+                        </div>
+                    </div>
+                `;
+                
+                if(t.prioridad === 'Alta') listPrincipal.appendChild(item);
+                else listSecundaria.appendChild(item);
+            });
+            renderCalendar();
+        }
+
+        function selectTask(id) {
+            currentActiveTaskId = id;
+            isEditMode = false;
+            document.getElementById('btn-edit-detail').classList.remove('btn-active-glow');
+            
+            const task = db[currentUser].tareas.find(t => t.id === id);
+            renderTaskLists(); 
+            
+            document.getElementById('detail-status').innerText = task.completada ? "[ COMPLETADA ]" : "[ PENDIENTE ]";
+            document.getElementById('detail-status').style.color = task.completada ? "#00ff00" : "var(--neon-yellow-dim)";
+            
+            const titleInput = document.getElementById('detail-title');
+            titleInput.value = task.nombre;
+            titleInput.readOnly = true;
+            
+            document.getElementById('detail-meta').innerText = `Materia: ${task.materia} | Fecha: ${task.fecha_limite}`;
+            
+            const descArea = document.getElementById('detail-desc');
+            descArea.value = task.descripcion || "Sin descripción.";
+            descArea.readOnly = true;
+        }
+
+        function clearDetails() {
+            currentActiveTaskId = null;
+            isEditMode = false;
+            document.getElementById('btn-edit-detail').classList.remove('btn-active-glow');
+            
+            document.getElementById('detail-status').innerText = "Estado: ---";
+            const title = document.getElementById('detail-title');
+            title.value = "Ninguna tarea";
+            title.readOnly = true;
+            
+            document.getElementById('detail-meta').innerText = "Materia: --- | Fecha: ---";
+            
+            const desc = document.getElementById('detail-desc');
+            desc.value = "";
+            desc.readOnly = true;
+        }
+
+        function openTaskModal(prioridad) {
+            if (db[currentUser].materias.length === 0) return showArcadeAlert("Primero debes añadir una clase para poder asignarle tareas.", "SISTEMA");
+            
+            document.getElementById('modal-task-title').innerText = `NUEVA TAREA (${prioridad})`;
+            document.getElementById('modal-task-priority').value = prioridad;
+            document.getElementById('modal-name').value = '';
+            document.getElementById('modal-date').value = '';
+            document.getElementById('modal-desc-input').value = '';
+            document.getElementById('task-modal').classList.add('active');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay:not(#custom-alert-modal)').forEach(m => m.classList.remove('active'));
+        }
+
+        function saveNewTask() {
+            const nombre = document.getElementById('modal-name').value.trim();
+            const materia = document.getElementById('modal-subject').value;
+            const fecha = document.getElementById('modal-date').value;
+            const desc = document.getElementById('modal-desc-input').value;
+            const prioridad = document.getElementById('modal-task-priority').value;
+
+            if(!nombre || !fecha) return showArcadeAlert("El nombre de la tarea y la fecha son obligatorios.", "DATOS INCOMPLETOS");
+
+            const newTask = {
+                id: Date.now().toString(), 
+                nombre: nombre,
+                descripcion: desc,
+                materia: materia,
+                fecha_limite: fecha,
+                prioridad: prioridad,
+                completada: false
+            };
+            
+            db[currentUser].tareas.push(newTask);
+            guardarDatos();
+            closeModals();
+            renderTaskLists();
+            selectTask(newTask.id);
+        }
+
+        function toggleEditMode() {
+            if(!currentActiveTaskId) return showArcadeAlert("Selecciona una tarea primero para poder editarla.", "ACCIÓN INVÁLIDA");
+            
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('btn-edit-detail');
+            const titleInput = document.getElementById('detail-title');
+            const descArea = document.getElementById('detail-desc');
+            
+            if(isEditMode) {
+                btn.classList.add('btn-active-glow');
+                titleInput.readOnly = false;
+                descArea.readOnly = false;
+                titleInput.focus();
+            } else {
+                btn.classList.remove('btn-active-glow');
+                titleInput.readOnly = true;
+                descArea.readOnly = true;
+            }
+        }
+
+        function saveDetails() {
+            if(!currentActiveTaskId) return;
+            if(!isEditMode) return showArcadeAlert("Debes activar el modo edición primero (Botón de Editar) para guardar cambios.", "ACCIÓN DENEGADA");
+            
+            const task = db[currentUser].tareas.find(t => t.id === currentActiveTaskId);
+            const newTitle = document.getElementById('detail-title').value.trim();
+            
+            if(!newTitle) return showArcadeAlert("El título de la tarea no puede estar vacío.", "ERROR");
+            
+            task.nombre = newTitle;
+            task.descripcion = document.getElementById('detail-desc').value;
+            guardarDatos();
+            
+            isEditMode = false;
+            document.getElementById('btn-edit-detail').classList.remove('btn-active-glow');
+            document.getElementById('detail-title').readOnly = true;
+            document.getElementById('detail-desc').readOnly = true;
+            
+            renderTaskLists();
+            showArcadeAlert("Se han guardado los cambios correctamente.", "GUARDADO ÉXITOSO");
+        }
+
+        function completeCurrentDetail() {
+            if(!currentActiveTaskId) return showArcadeAlert("Selecciona una tarea primero para completarla.", "SISTEMA");
+            
+            const task = db[currentUser].tareas.find(t => t.id === currentActiveTaskId);
+            task.completada = !task.completada;
+            guardarDatos();
+            renderTaskLists();
+            selectTask(currentActiveTaskId);
+            
+            if(task.completada) showArcadeAlert("¡Misión cumplida! Tarea marcada como completada.", "MISIÓN LOGRADA");
+        }
+
+        function deleteCurrentDetail() {
+            if(!currentActiveTaskId) return showArcadeAlert("Selecciona una tarea primero.", "SISTEMA");
+            
+            showArcadeConfirm(
+                "¿Estás completamente seguro de borrar esta tarea?\nSe eliminará de la lista y del calendario.", 
+                "BORRAR TAREA",
+                () => {
+                    db[currentUser].tareas = db[currentUser].tareas.filter(t => t.id !== currentActiveTaskId);
+                    guardarDatos();
+                    clearDetails();
+                    renderTaskLists();
+                }
+            );
+        }
+
+        // --- CALENDARIO ---
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = `
+                <div class="calendar-header-cell">Do</div><div class="calendar-header-cell">Lu</div><div class="calendar-header-cell">Ma</div>
+                <div class="calendar-header-cell">Mi</div><div class="calendar-header-cell">Ju</div><div class="calendar-header-cell">Vi</div><div class="calendar-header-cell">Sa</div>
+            `;
+            
+            const month = calDate.getMonth();
+            const year = calDate.getFullYear();
+            document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            for(let i = firstDay - 1; i >= 0; i--) {
+                grid.innerHTML += `<div class="calendar-day-cell dim">${prevMonthDays - i}</div>`;
+            }
+
+            const today = new Date();
+            for(let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                const tareasDia = db[currentUser].tareas.filter(t => t.fecha_limite === dateStr && !t.completada);
+                
+                let classes = "calendar-day-cell";
+                if(year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+                    classes += " today";
+                }
+
+                let dotsHtml = "";
+                if(tareasDia.length > 0) {
+                    dotsHtml = `<div class="dots-container">`;
+                    const tieneAlta = tareasDia.some(t => t.prioridad === 'Alta');
+                    const tieneBaja = tareasDia.some(t => t.prioridad === 'Baja');
+                    if (tieneAlta) dotsHtml += `<div class="task-dot dot-alta"></div>`;
+                    if (tieneBaja) dotsHtml += `<div class="task-dot dot-baja"></div>`;
+                    dotsHtml += `</div>`;
+                }
+                
+                grid.innerHTML += `<div class="${classes}" onclick="selectDateFromCalendar('${dateStr}')">${i}${dotsHtml}</div>`;
+            }
+        }
+
+        function changeMonth(dir) {
+            calDate.setMonth(calDate.getMonth() + dir);
+            renderCalendar();
+        }
+
+        function selectDateFromCalendar(dateStr) {
+            const taskFound = db[currentUser].tareas.find(t => t.fecha_limite === dateStr && !t.completada);
+            if(taskFound) {
+                selectTask(taskFound.id);
+            } else {
+                clearDetails();
+                document.getElementById('detail-title').value = "Día sin tareas pendientes";
+                document.getElementById('detail-meta').innerText = `Fecha: ${dateStr}`;
+            }
+        }
+    </script>
+</body>
+</html>

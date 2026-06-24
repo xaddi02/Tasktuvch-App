@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - Administra el Medicamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #1a0813;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    /* FONDO INTERGALÁCTICO ROSA */
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #4a1535 0%, #12030c 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 182, 193, 0.8) 1px, transparent 1px);
+        background-size: 45px 45px;
+        opacity: .12;
+        z-index: -2;
+    }
+
+    /* PANTALLA DE INICIO / MENÚ */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #12030c;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.5rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493, 0 0 40px #ff1493;
+        margin-bottom: 15px;
+        letter-spacing: 2px;
+    }
+
+    .menu-inicio .subtitle {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: 0.9rem;
+        margin-bottom: 40px;
+    }
+
+    .instrucciones-box {
+        background: rgba(0,0,0,.55);
+        border: 3px solid #ff69b4;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 650px;
+        margin-bottom: 40px;
+        box-shadow: 0 0 15px rgba(255,105,180,.3);
+    }
+
+    .instrucciones-box p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        line-height: 1.6rem;
+    }
+
+    .control-box-menu {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: .8rem;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .key-mouse {
+        display: inline-block;
+        padding: 10px 15px;
+        border: 3px solid #ff69b4;
+        border-radius: 12px;
+        background: rgba(0,0,0,.45);
+        box-shadow: 0 0 12px rgba(255,105,180,.5);
+        margin-right: 10px;
+    }
+
+    /* HUD SUPERIOR */
+    .top-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+    }
+
+    .btn-volver {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff69b4;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 12px #ff69b4;
+    }
+
+    .btn-volver:hover {
+        transform: scale(1.05);
+        background: rgba(255,105,180,.15);
+    }
+
+    .center-title {
+        text-align: center;
+    }
+
+    .title-juego {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff1493;
+    }
+
+    .subtitle-juego {
+        margin-top: 8px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: 0.75rem;
+    }
+
+    .hud {
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff69b4;
+        border-radius: 15px;
+        padding: 10px 20px;
+        min-width: 140px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(255,105,180,.5);
+    }
+
+    .hud-box h3 {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff69b4;
+        font-size: .65rem;
+        margin-bottom: 8px;
+    }
+
+    .hud-box p {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.4rem;
+    }
+
+    #time { color: #ff5c8a; }
+    #score { color: #ffd600; }
+
+    /* CANVAS ESTILO CRISTAL CLÍNICO */
+    canvas {
+        background-color: rgba(0, 0, 0, 0.45);
+        border: 3px solid #ff69b4;
+        border-radius: 25px;
+        box-shadow: 0 0 25px rgba(255,105,180,.4);
+        margin: 10px auto;
+        max-height: 60vh;
+        display: block;
+        z-index: 2;
+    }
+
+    /* BOTÓN GENERAL */
+    .play-btn {
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        background: #ff1493;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .play-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #ff1493;
+    }
+
+    /* SCREEN OVERLAY (FIN) */
+    .overlayScreen {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.94);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+    }
+
+    .overlayScreen h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.5rem;
+        color: #d9e3ea;
+        text-shadow: 0 0 20px rgba(255,255,255,.5);
+        margin-bottom: 25px;
+    }
+
+    .overlayScreen p {
+        font-size: 1.8rem;
+        margin-bottom: 35px;
+    }
+
+    .overlayScreen span {
+        color: #ff6ea8;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+    <div class="stars"></div>
+
+    <div class="menu-inicio" id="menuInicio">
+        <h1>¡ADMINISTRA EL MEDICAMENTO!</h1>
+        <div class="subtitle">MÓDULO DE ATENCIÓN FARMACOLÓGICA Y ASISTENCIA</div>
+        
+        <div class="instrucciones-box">
+            <p>Analiza el requerimiento o pregunta clínica del tablero superior. Selecciona con un clic la cápsula de medicamento flotante que tenga grabada la respuesta correcta.</p>
+            
+            <div class="control-box-menu">
+                <span class="key-mouse">CLIC IZQUIERDO</span>
+                <span>ADMINISTRAR DOSIS</span>
+            </div>
+        </div>
+
+        <button class="play-btn" onclick="comenzarJuego()">Iniciar Jornada Médica</button>
+    </div>
+
+    <div class="top-bar">
+        <button id="btn-volver" class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+        <div class="center-title">
+            <h1 class="title-juego">¡ADMINISTRA EL MEDICAMENTO!</h1>
+            <div class="subtitle-juego">CUIDADOS DE PERSONAS DEPENDIENTES</div>
+        </div>
+        
+        <div class="hud">
+            <div class="hud-box">
+                <h3>TIEMPO</h3>
+                <p id="time">60s</p>
+            </div>
+            <div class="hud-box">
+                <h3>EFICIENCIA</h3>
+                <p id="score">0</p>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="720" height="480"></canvas>
+
+    <div id="endScreen" class="overlayScreen" style="display: none;">
+        <h1 id="finalTitle">¡TURNO TERMINADO!</h1>
+        <p>Puntuación Final: <span id="finalScore">0</span></p>
+        <button class="play-btn" onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let score = 0;
+        let timeLeft = 60;
+        let timer;
+        let gameRunning = false; 
+        let respuestasCorrectasTotal = 0; 
+        
+        let question = "";
+        let answers = []; 
+        
+        const quiz = [
+            {
+                q: "¿Vía de administración abajo de la lengua?",
+                correct: "Sublingual",
+                wrongs: ["Oral", "Cutánea", "Oftálmica", "Rectal", "Inhalada", "Nasal", "Vaginal", "Ótica", "Tópica"]
+            },
+            {
+                q: "¿Nutriente esencial para reparar tejidos?",
+                correct: "Proteínas",
+                wrongs: ["Lípidos", "Azúcares", "Carbohidratos", "Sodio", "Glucosa", "Grasas", "Almidón", "Celulosa", "Colesterol"]
+            },
+            {
+                q: "¿Ayuda técnica de marcha con 4 apoyos?",
+                correct: "Andadera",
+                wrongs: ["Bastón", "Muleta", "Grúa", "Silla ruedas", "Arnés", "Faja", "Camilla", "Bota", "Cabestrillo"]
+            },
+            {
+                q: "Acción principal ante atragantamiento severo:",
+                correct: "Maniobra Heimlich",
+                wrongs: ["Dar agua", "Soplar la cara", "Acostar de lado", "Reanimación RCP", "Ventilar", "Hacer ruidos", "Gritar", "Presión cuello", "Palpar tórax"]
+            },
+            {
+                q: "¿Qué se limpia primero en el aseo en cama?",
+                correct: "Los Ojos",
+                wrongs: ["La Espalda", "Los Pies", "El Abdomen", "Las Manos", "Las Piernas", "El Cuello", "Los Brazos", "Los Genitales"]
+            },
+            {
+                q: "Dispositivo para orina en pacientes postrados:",
+                correct: "Cómoda",
+                wrongs: ["Bacinica", "Sonda", "Pañal", "Bolsa", "Tubo", "Frasco", "Tina", "Charola", "Contenedor"]
+            },
+            {
+                q: "¿Frecuencia cardíaca promedio normal por minuto?",
+                correct: "60 a 100 lpm",
+                wrongs: ["120 a 160 lpm", "30 a 50 lpm", "10 a 20 lpm", "180 a 200 lpm", "5 a 12 lpm", "150 lpm", "80 a 140 lpm", "200 lpm"]
+            }
+        ];
+
+        function comenzarJuego() {
+            document.getElementById('menuInicio').style.display = 'none';
+            gameRunning = true;
+            newQuestion();
+            startTimer();
+            gameLoop();
+        }
+
+        function regresarAlMenu() {
+            window.location.href = 'vista.html';
+        }
+
+        function newQuestion() {
+            const qData = quiz[Math.floor(Math.random() * quiz.length)];
+            question = qData.q;
+            
+            let all = [qData.correct, ...qData.wrongs];
+            all.sort(() => Math.random() - 0.5);
+            
+            answers = [];
+            
+            for (let i = 0; i < 6; i++) { 
+                let text = all[i];
+                let x = 110 + Math.random() * 500;
+                let y = 160 + Math.random() * 220;
+                let vx = (Math.random() * 2.2 - 1.1); 
+                let vy = (Math.random() * 2.2 - 1.1);
+                
+                answers.push({
+                    text: text,
+                    x: x,
+                    y: y,
+                    vx: vx,
+                    vy: vy,
+                    correct: (text === qData.correct)
+                });
+            }
+        }
+
+        function drawCapsule(x, y, text) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(0.15); 
+
+            let w = 150; 
+            let h = 58;  
+            let r = h / 2;
+
+            ctx.beginPath();
+            ctx.arc(-w/4 + r/2, 0, r, Math.PI/2, 3*Math.PI/2);
+            ctx.lineTo(0, -r);
+            ctx.lineTo(0, r);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255, 20, 147, 0.35)";
+            ctx.fill();
+            ctx.strokeStyle = "#ff1493";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(w/4 - r/2, 0, r, 3*Math.PI/2, Math.PI/2);
+            ctx.lineTo(0, r);
+            ctx.lineTo(0, -r);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255, 182, 193, 0.25)";
+            ctx.fill();
+            ctx.strokeStyle = "#ff69b4";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -r);
+            ctx.lineTo(0, r);
+            ctx.strokeStyle = "#ff69b4";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(-w/4 + 10, -8, 5, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(255,255,255,0.45)";
+            ctx.fill();
+
+            ctx.restore();
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px 'Press Start 2P', cursive"; 
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 5;
+            ctx.fillText(text, x, y);
+            ctx.shadowBlur = 0;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+            ctx.beginPath();
+            ctx.roundRect(30, 15, 660, 90, 18);
+            ctx.fill();
+            ctx.strokeStyle = "#ff69b4";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px 'Press Start 2P', cursive"; 
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(question, 360, 60);
+
+            for (let a of answers) {
+                drawCapsule(a.x, a.y, a.text);
+            }
+        }
+
+        function update() {
+            for (let a of answers) {
+                a.x += a.vx;
+                a.y += a.vy;
+
+                if (a.x < 85 || a.x > canvas.width - 85) a.vx *= -1;
+                if (a.y < 165 || a.y > canvas.height - 60) a.vy *= -1;
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('click', function(e) {
+            if (!gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            for (let a of answers) {
+                const dx = mx - a.x;
+                const dy = my - a.y;
+                const distancia = Math.sqrt(dx*dx + dy*dy);
+
+                if (distancia < 65) { 
+                    if (a.correct) {
+                        score += 20;
+                        respuestasCorrectasTotal++;
+                        document.getElementById('score').textContent = score;
+                        timeLeft += 5; 
+                        if (timeLeft > 90) timeLeft = 90;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(255, 20, 147, 0.35)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                        
+                        setTimeout(() => {
+                            newQuestion();
+                        }, 120);
+                    } else {
+                        timeLeft -= 4;
+                        if(timeLeft < 0) timeLeft = 0;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(74, 21, 53, 0.5)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                    }
+                    return;
+                }
+            }
+        });
+
+        function startTimer() {
+            timer = setInterval(() => {
+                if (!gameRunning) return;
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft + "s";
+                
+                if (timeLeft <= 0) {
+                    evaluarFinJuego("¡SE TE TERMINÓ EL TIEMPO!");
+                }
+            }, 1000);
+        }
+
+        function evaluarFinJuego(motivoBase) {
+            gameRunning = false;
+            clearInterval(timer);
+            
+            let mensajeFinal = motivoBase;
+            
+            if (motivoBase !== "¡SE TE TERMINÓ EL TIEMPO!") {
+                if (respuestasCorrectasTotal >= 6) {
+                    mensajeFinal = "¡EXCELENTE PROTOCOLO CLÍNICO!";
+                } else if (respuestasCorrectasTotal >= 3) {
+                    mensajeFinal = "¡BUEN TRABAJO ASISTENCIAL!";
+                } else {
+                    mensajeFinal = "¡REPASAR DOSIFICACIONES!";
+                }
+            } else {
+                if (score <= 0) {
+                    mensajeFinal = "¡REPASAR PROTOCOLOS DE CUIDADO!";
+                }
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTitle').innerText = mensajeFinal;
+            document.getElementById('endScreen').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

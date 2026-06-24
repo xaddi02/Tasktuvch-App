@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TaskTUVCH - Comanda en la Cocina</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #1a0505;
+        overflow: hidden;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    /* FONDO INTERGALÁCTICO ROJO */
+    body::before{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top, #5a1010 0%, #0f0202 65%);
+        z-index: -3;
+    }
+
+    .stars{
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 128, 128, 0.8) 1px, transparent 1px);
+        background-size: 45px 45px;
+        opacity: .12;
+        z-index: -2;
+    }
+
+    /* PANTALLA DE INICIO / MENÚ */
+    .menu-inicio {
+        position: fixed;
+        inset: 0;
+        background: #0f0202;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .menu-inicio h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.5rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff2222, 0 0 40px #ff2222;
+        margin-bottom: 15px;
+        letter-spacing: 2px;
+    }
+
+    .menu-inicio .subtitle {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: 0.9rem;
+        margin-bottom: 40px;
+    }
+
+    .instrucciones-box {
+        background: rgba(0,0,0,.55);
+        border: 3px solid #ff4444;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 650px;
+        margin-bottom: 40px;
+        box-shadow: 0 0 15px rgba(255,68,68,.3);
+    }
+
+    .instrucciones-box p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        line-height: 1.6rem;
+    }
+
+    .control-box-menu {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: .8rem;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .key-mouse {
+        display: inline-block;
+        padding: 10px 15px;
+        border: 3px solid #ff4444;
+        border-radius: 12px;
+        background: rgba(0,0,0,.45);
+        box-shadow: 0 0 12px rgba(255,68,68,.5);
+        margin-right: 10px;
+    }
+
+    /* HUD SUPERIOR */
+    .top-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+    }
+
+    .btn-volver {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 0 12px #ff4444;
+    }
+
+    .btn-volver:hover {
+        transform: scale(1.05);
+        background: rgba(255,68,68,.15);
+    }
+
+    .center-title {
+        text-align: center;
+    }
+
+    .title-juego {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.6rem;
+        color: white;
+        text-shadow: 0 0 10px white, 0 0 20px #ff2222;
+    }
+
+    .subtitle-juego {
+        margin-top: 8px;
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: 0.75rem;
+    }
+
+    .hud {
+        display: flex;
+        gap: 15px;
+    }
+
+    .hud-box {
+        background: rgba(0,0,0,.45);
+        border: 3px solid #ff4444;
+        border-radius: 15px;
+        padding: 10px 20px;
+        min-width: 140px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(255,68,68,.5);
+    }
+
+    .hud-box h3 {
+        font-family: 'Press Start 2P', cursive;
+        color: #ff4444;
+        font-size: .65rem;
+        margin-bottom: 8px;
+    }
+
+    .hud-box p {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.4rem;
+    }
+
+    #time { color: #ff5c8a; }
+    #score { color: #ffd600; }
+
+    /* CANVAS */
+    canvas {
+        background-color: rgba(0, 0, 0, 0.45);
+        border: 3px solid #ff4444;
+        border-radius: 25px;
+        box-shadow: 0 0 25px rgba(255,68,68,.4);
+        margin: 10px auto;
+        max-height: 60vh;
+        display: block;
+        z-index: 2;
+    }
+
+    /* BOTÓN GENERAL */
+    .play-btn {
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        background: #ff2222;
+        color: white;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .play-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #ff2222;
+    }
+
+    /* SCREEN OVERLAY */
+    .overlayScreen {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.94);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+    }
+
+    .overlayScreen h1 {
+        font-family: 'Press Start 2P', cursive;
+        font-size: 2.5rem;
+        color: #d9e3ea;
+        text-shadow: 0 0 20px rgba(255,255,255,.5);
+        margin-bottom: 25px;
+    }
+
+    .overlayScreen p {
+        font-size: 1.8rem;
+        margin-bottom: 35px;
+    }
+</style>
+</head>
+<body>
+
+    <div class="stars"></div>
+
+    <div class="menu-inicio" id="menuInicio">
+        <h1>¡COMANDA EN LA COCINA!</h1>
+        <div class="subtitle">MÓDULO DE OPERACIÓN GASTRONÓMICA Y GASTRONOMÍA</div>
+        
+        <div class="instrucciones-box">
+            <p>Lee la comanda o pregunta técnica del tablero superior. Atrapa dando un clic al plato de servicio flotante que contenga la respuesta e ingredientes correctos antes de que se enfríe la orden.</p>
+            
+            <div class="control-box-menu">
+                <span class="key-mouse">CLIC IZQUIERDO</span>
+                <span>DESPACHAR ORDEN</span>
+            </div>
+        </div>
+
+        <button class="play-btn" onclick="comenzarJuego()">Iniciar Servicio de Cocina</button>
+    </div>
+
+    <div class="top-bar">
+        <button id="btn-volver" class="btn-volver" onclick="regresarAlMenu()">⬅ SALIR</button>
+
+        <div class="center-title">
+            <h1 class="title-juego">¡COMANDA EN LA COCINA!</h1>
+            <div class="subtitle-juego">HOTELES Y RESTAURANTES</div>
+        </div>
+        
+        <div class="hud">
+            <div class="hud-box">
+                <h3>TIEMPO</h3>
+                <p id="time">60s</p>
+            </div>
+            <div class="hud-box">
+                <h3>PUNTOS</h3>
+                <p id="score">0</p>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="720" height="480"></canvas>
+
+    <div id="endScreen" class="overlayScreen" style="display: none;">
+        <h1 id="finalTitle">¡SERVICIO CONCLUIDO!</h1>
+        <p>Puntuación Final: <span id="finalScore" style="color:#ffd600">0</span></p>
+        <button class="play-btn" onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let score = 0;
+        let timeLeft = 60;
+        let timer;
+        let gameRunning = false; 
+        let respuestasCorrectasTotal = 0; 
+        
+        let question = "";
+        let answers = []; 
+        
+        const quiz = [
+            {
+                q: "¿A qué temperatura exacta debe estar la carne para considerarse en término medio?",
+                correct: "63 °C",
+                wrongs: ["45 °C", "71 °C", "85 °C", "100 °C", "50 °C", "30 °C", "90 °C", "77 °C"]
+            },
+            {
+                q: "¿Qué certificación mexicana evalúa la higiene y manejo de alimentos en restaurantes?",
+                correct: "Distintivo H",
+                wrongs: ["Distintivo M", "Norma ISO", "Sello Limpio", "Sello Oro", "Punto Limpio", "NOM 251", "Distintivo T"]
+            },
+            {
+                q: "¿Corte clásico de cocina que consiste en tiras finas de 5 cm de largo por 2 mm de ancho?",
+                correct: "Juliana",
+                wrongs: ["Brunoise", "Chiffonade", "Mirepoix", "Bastón", "Emincé", "Rondelle", "Vichy"]
+            },
+            {
+                q: "¿Qué salsa madre de la cocina francesa se elabora a base de un roux y leche?",
+                correct: "Bechamel",
+                wrongs: ["Velouté", "Española", "Pomodoro", "Holandesa", "Mayonesa", "Bernaise", "Tártara"]
+            },
+            {
+                q: "Documento interno donde se desglosan los ingredientes, costos y pasos de un platillo:",
+                correct: "Receta Estándar",
+                wrongs: ["Comanda", "Menú", "Inventario", "Checklist", "Ficha Técnica", "Costo Diario", "Bitácora"]
+            },
+            {
+                q: "¿Qué tipo de contaminación ocurre cuando un alimento limpio toca utensilios usados con carne cruda?",
+                correct: "Cruzada",
+                wrongs: ["Bacteriana", "Química", "Física", "Directa", "Tóxica", "Ambiental", "Secundaria"]
+            }
+        ];
+
+        function comenzarJuego() {
+            document.getElementById('menuInicio').style.display = 'none';
+            gameRunning = true;
+            newQuestion();
+            startTimer();
+            gameLoop();
+        }
+
+        function regresarAlMenu() {
+            window.location.href = 'vista.html';
+        }
+
+        function newQuestion() {
+            const qData = quiz[Math.floor(Math.random() * quiz.length)];
+            question = qData.q;
+            
+            let all = [qData.correct, ...qData.wrongs];
+            all.sort(() => Math.random() - 0.5);
+            
+            answers = [];
+            
+            for (let i = 0; i < 5; i++) { 
+                let text = all[i];
+                let x = 110 + Math.random() * 500;
+                let y = 180 + Math.random() * 200;
+                let vx = (Math.random() * 2.2 - 1.1); 
+                let vy = (Math.random() * 2.2 - 1.1);
+                
+                answers.push({
+                    text: text,
+                    x: x,
+                    y: y,
+                    vx: vx,
+                    vy: vy,
+                    correct: (text === qData.correct)
+                });
+            }
+        }
+
+        function drawGourmetDish(x, y, text) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            let r = 50; 
+
+            ctx.beginPath();
+            ctx.ellipse(0, 15, r + 15, 10, 0, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 214, 0, 0.4)";
+            ctx.fill();
+            ctx.strokeStyle = "#ffd600";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 10, r, Math.PI, 0); 
+            ctx.lineTo(r, 13);
+            ctx.lineTo(-r, 13);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255, 34, 34, 0.25)";
+            ctx.fill();
+            ctx.strokeStyle = "#ff4444";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, -r + 10, 8, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffd600";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(-20, -10, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            ctx.fill();
+
+            ctx.restore();
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px 'Press Start 2P', cursive";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 5;
+            ctx.fillText(text, x, y + 5);
+            ctx.shadowBlur = 0;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+            ctx.beginPath();
+            ctx.roundRect(30, 15, 660, 95, 18);
+            ctx.fill();
+            ctx.strokeStyle = "#ff4444";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px 'Press Start 2P', cursive";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            let words = question.split(" ");
+            let line1 = "", line2 = "";
+            for(let i=0; i<words.length; i++){
+                if((line1 + words[i]).length < 45) line1 += words[i] + " ";
+                else line2 += words[i] + " ";
+            }
+            
+            if(line2 === "") {
+                ctx.fillText(question, 360, 62);
+            } else {
+                ctx.fillText(line1.trim(), 360, 48);
+                ctx.fillText(line2.trim(), 360, 72);
+            }
+
+            for (let a of answers) {
+                drawGourmetDish(a.x, a.y, a.text);
+            }
+        }
+
+        function update() {
+            for (let a of answers) {
+                a.x += a.vx;
+                a.y += a.vy;
+
+                if (a.x < 85 || a.x > canvas.width - 85) a.vx *= -1;
+                if (a.y < 175 || a.y > canvas.height - 55) a.vy *= -1;
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('click', function(e) {
+            if (!gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            for (let a of answers) {
+                const dx = mx - a.x;
+                const dy = my - a.y;
+                const distancia = Math.sqrt(dx*dx + dy*dy);
+
+                if (distancia < 65) { 
+                    if (a.correct) {
+                        score += 20;
+                        respuestasCorrectasTotal++;
+                        document.getElementById('score').textContent = score;
+                        timeLeft += 5; 
+                        if (timeLeft > 90) timeLeft = 90;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(255, 214, 0, 0.25)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                        
+                        setTimeout(() => {
+                            newQuestion();
+                        }, 120);
+                    } else {
+                        timeLeft -= 4;
+                        if(timeLeft < 0) timeLeft = 0;
+                        document.getElementById('time').textContent = timeLeft + "s";
+                        
+                        ctx.fillStyle = "rgba(90, 16, 16, 0.5)";
+                        ctx.fillRect(0,0,canvas.width,canvas.height);
+                    }
+                    return;
+                }
+            }
+        });
+
+        function startTimer() {
+            timer = setInterval(() => {
+                if (!gameRunning) return;
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft + "s";
+                
+                if (timeLeft <= 0) {
+                    evaluarFinJuego("¡SE TERMINÓ EL TIEMPO DEL SERVICIO!");
+                }
+            }, 1000);
+        }
+
+        function evaluarFinJuego(motivoBase) {
+            gameRunning = false;
+            clearInterval(timer);
+            
+            let mensajeFinal = motivoBase;
+            
+            if (motivoBase !== "¡SE TERMINÓ EL TIEMPO DEL SERVICIO!") {
+                if (respuestasCorrectasTotal >= 5) {
+                    mensajeFinal = "¡EXCELENTE SERVICIO 5 ESTRELLAS!";
+                } else if (respuestasCorrectasTotal >= 2) {
+                    mensajeFinal = "¡BUEN TRABAJO EN LA LÍNEA!";
+                } else {
+                    mensajeFinal = "¡REPASAR RECETAS ESTÁNDAR!";
+                }
+            } else {
+                if (score <= 0) {
+                    mensajeFinal = "¡MALA COORDINACIÓN EN COMANDAS!";
+                }
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTitle').innerText = mensajeFinal;
+            document.getElementById('endScreen').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
